@@ -1,0 +1,27 @@
+<?xml version="1.0" standalone="no"?>
+
+<model id="GCA_MUS111" name="Mouse abstract" level="generic" owner="GCA project"  species="Mouse" reference_model=""		
+		description="Sample 1D gut model for mouse devloped as part of the Gut Cell Atlas project.">
+	<regions>
+	    <region id="R1" uberon="" name="Anal Canal" start="0" end="2" description="Anal Canal">
+	    </region>
+	    <region id="R2" uberon="" name="Rectum" start="2" end="5" description="Rectum">
+	    </region>
+	    <region id="R3" uberon="" name="Mid-distal" start="5" end="70" description="Mid-distal">
+	    </region>
+	    <region id="R4" uberon="" name="Proximal" start="70" end="100" description="Proximal">
+	    </region>
+	    <region id="R5" uberon="" name="Caecum" start="100" end="140" description="Caecum">
+	    </region>
+	    <region id="R6" uberon="" name="Ileum" start="140" end="150" description="Ileum" branch="extension">
+	    </region>
+	</regions>
+	<landmarks>
+	    <landmark id="L1" uberon="UBERON:0001245" title="Anus" description="Anus" pos="0">
+	    </landmark>
+	    <landmark id="L2" uberon="" title="ICV'" description="Ileocaecal valve colon projection" pos="140">
+	    </landmark>
+	    <landmark id="L3" uberon="UBERON:0000569" title="ICV" description="Ileocaecal valve" type="bifurcation" pos="140" branch="extension">
+		</landmark>
+	</landmarks>		
+</model>

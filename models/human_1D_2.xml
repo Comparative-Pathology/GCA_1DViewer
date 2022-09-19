@@ -1,0 +1,51 @@
+<?xml version="1.0" standalone="no"?>
+<model id="GCA_HMN111" name="Human abstract" level="generic" species="Human" owner="GCA project" reference_model=""		
+		description="Sample 1D gut model for human devloped as part of the Gut Cell Atlas project.">
+	<regions>
+	    <region id="R1" uberon="UBERON:0000159" name="Anal Canal" start="0" end="40" description="Anal Canal">
+	    </region>
+	    <region id="R2" uberon="UBERON:0001052" name="Rectum" start="40" end="160" description="Rectum">
+	    </region>
+	    <region id="R3" uberon="UBERON:0001159" name="Sigmoid" start="160" end="560" description="Sigmoid Colon">
+	    </region>
+	    <region id="R4" uberon="UBERON:0001158" name="Descending" start="560" end="810" description="Descending Colon">
+	    </region>
+	    <region id="R5" uberon="UBERON:0001157" name="Transverse" start="810" end="1310" description="Transverse Colon">
+	    </region>
+	    <region id="R6" uberon="UBERON:0001156" name="Ascending" start="1310" end="1460" description="Ascending Colon">
+	    </region>
+	    <region id="R7" uberon="UBERON:0001153" name="Caecum" start="1460" end="1500" description="Caecum">
+	    </region>
+	    <region id="R8" uberon="" name="Appendix" start="1500" end="1540" description="Appendix">
+	    </region>
+	</regions>	
+    <landmarks>
+	    <landmark id="L1" uberon="UBERON:0001245" title="Anus" description="Anus" pos="0">
+	    </landmark>
+	    <landmark id="L2" uberon="" title="ARJ" description="Ano-Rectal Junction" pos="40">
+	    </landmark>
+	    <landmark id="L3" uberon="" title="APR" description="Anterior Peritoneal Reflection" pos="100">
+	    </landmark>
+	    <landmark id="L4" uberon="" title="RSJ" description="Recto-Sigmoid Junction" pos="160">
+	    </landmark>
+	    <landmark id="L5" uberon="" title="DSJ" description="Descending-Sigmoid Junction" pos="560">
+	    </landmark>
+	    <landmark id="L6" uberon="UBERON:0022276" title="SF" description="Splenic Flexure" pos="810"  start="790" end="830">
+	    </landmark>
+	    <landmark id="L7" uberon="UBERON:0022277" title="HF" description="Hepatic Flexure" pos="1310"  start="1290" end="1330">
+	    </landmark>
+
+<!-- 
+	    <landmark id="L8" uberon="" title="CCJ" description="Caeco-Colonic Junction" pos="1460">
+	    </landmark>
+	    <landmark id="L11" uberon="UBERON:0000569" title="ICV" description="Ileocaecal valve" type="bifurcation" pos="1475" branch="both">
+	    </landmark>
+ -->	    
+	    <landmark id="L9" uberon="" title="AO" description="Appendix Orifice" pos="1500">
+	    </landmark>
+	    <landmark id="L10" uberon="" title="AT" description="Appendix Tip" pos="1540">
+	    </landmark>
+	    <landmark id="L11" uberon="" title="ICV'" description="Ileocaecal valve colon projection" pos="1475">
+	    </landmark>
+    </landmarks>
+</model>

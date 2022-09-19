@@ -1,0 +1,86 @@
+<?xml version="1.0" standalone="no"?>
+<model id="GCA_HMN111" name="Human abstract" level="generic" species="Human" owner="GCA project" reference_model=""		
+		description="Sample 1D gut model for human devloped as part of the Gut Cell Atlas project.">
+	<regions>
+	    <region id="19" name="Anal Canal" start="0" end="40" color="#ac3939">
+	    </region>
+	    <region id="18" name="Rectum" start="40" end="160" color="#ac3939">
+	    </region>
+	    <region id="17" uberon="UBERON:0001159" name="Sigmoid" start="160" end="560" color="#ac3939">
+	    </region>
+	    <region id="16" uberon="UBERON:0001158" name="Descending" start="560" end="810" color="#f29940">
+	    </region>
+	    <region id="15" uberon="UBERON:0001157" name="Transverse" start="810" end="1310" color="#59d979">
+	    </region>
+	    <region id="14" uberon="UBERON:0001156" name="Ascending" start="1310" end="1460" color="#3385ff">
+	    </region>
+	    <region id="12" uberon="UBERON:0001153" name="Caecum" start="1460" end="1500" color="#751aff">
+	    </region>
+	    <region id="13" uberon="" name="Appendix" start="1500" end="1540" color="#ff66ff">
+	    </region>
+	    <region id="11" uberon="UBERON:0002116" name="Ileum" start="1475" end="2000" branch="extension" color="#ffe699">
+	    </region>
+	</regions>	
+    <landmarks>
+	    <landmark id="L1" uberon="UBERON:0001245" title="Anus" description="Anus" pos="0">
+	    </landmark>
+	    <landmark id="L2" uberon="" title="ARJ" description="Ano-Rectal Junction" pos="40">
+	    </landmark>
+	    <landmark id="L3" uberon="" title="APR" description="Anterior Peritoneal Reflection" pos="100">
+	    </landmark>
+	    <landmark id="L4" uberon="" title="RSJ" description="Recto-Sigmoid Junction" pos="160">
+	    </landmark>
+	    <landmark id="L5" uberon="" title="DSJ" description="Descending-Sigmoid Junction" pos="560">
+	    </landmark>
+	    <landmark id="L6" uberon="UBERON:0022276" title="SF" description="Splenic Flexure" pos="810" start="790" end="830" color="#ffff4d">
+	    </landmark>
+	    <landmark id="L7" uberon="UBERON:0022277" title="HF" description="Hepatic Flexure" pos="1310" start="1290" end="1330" color="#f0fad4">
+	    </landmark>
+<!-- 
+	    <landmark id="L8" uberon="" title="CCJ" description="Caeco-Colonic Junction" pos="1460">
+	    </landmark>
+	    <landmark id="L11" uberon="UBERON:0000569" title="ICV" description="Ileocaecal valve" type="bifurcation" pos="1475" branch="both">
+	    </landmark>
+ -->	    
+	    <landmark id="L9" uberon="" title="AO" description="Appendix Orifice" pos="1500">
+	    </landmark>
+	    <landmark id="L10" uberon="" title="AT" description="Appendix Tip" pos="1540">
+	    </landmark>
+	    <landmark id="L11" uberon="" title="ICVc" description="Ileocaecal valve colon projection" pos="1475">
+	    </landmark>
+	    <landmark id="L12" uberon="UBERON:0000569" title="ICVi" description="Ileocaecal valve" type="bifurcation" pos="1475" branch="extension">
+	    </landmark>
+<!-- 
+	    <landmark id="L12" uberon="" title="Ileum" description="Ileum" type="hidden" pos="2000" branch="extension">
+	    </landmark>
+-->	    
+   </landmarks>
+</model>
+
+<!-- 
+
+uberon="UBERON:0000159" name="Anal Canal" color="0xac3939"
+uberon="UBERON:0001052" name="Rectum" color="0xac3939"
+uberon="UBERON:0001159" name="Sigmoid" color="0xac3939"
+uberon="UBERON:0001158" name="Descending" color="0xf29940"
+uberon="UBERON:0001157" name="Transverse" color="0x59d979"
+uberon="UBERON:0001156" name="Ascending"  color="0x3385ff"
+uberon="UBERON:0001153" name="Caecum" color="0x751aff"
+uberon=""               name="Appendix" color="0xff66ff"
+uberon="UBERON:0002116" name="Ileum" color="0xffe699"
+uberon="UBERON:0022276" name="SF" color="0xffff4d"
+uberon="UBERON:0022277" name="HF" color="0xf0fad4"
+
+uberon="UBERON:0000159" name="Anal Canal" color="0xc00000"
+uberon="UBERON:0001052" name="Rectum" color="0xc00000"
+uberon="UBERON:0001159" name="Sigmoid" color="0xc00000"
+uberon="UBERON:0001158" name="Descending" color="0xffaa00"
+uberon="UBERON:0001157" name="Transverse" color="0x01ff23"
+uberon="UBERON:0001156" name="Ascending"  color="0x014dff"
+uberon="UBERON:0001153" name="Caecum" color="0xb300ff"
+uberon=""               name="Appendix" color="0xff016b"
+uberon="UBERON:0002116" name="Ileum" color="0xffeda5"
+uberon="UBERON:0022276" name="SF" color="0xe2ff00"
+uberon="UBERON:0022277" name="HF" color="0x03fff7"
+
+-->
