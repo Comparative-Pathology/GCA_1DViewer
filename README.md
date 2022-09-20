@@ -146,6 +146,21 @@ class DemoViewer extends EventTarget {
 }
 ```
 
+## How to build 
+
+To build the distribution:
+
+```
+npm run build
+```
+
+To add dependent packages (needed once for the first time): 
+
+```
+npm install
+```
+
+
 ## Acknowledgements and References
 
 GCARenderer was developed for use by the
