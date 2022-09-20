@@ -1,0 +1,30 @@
+{
+  "name": "GCA_1DViewer",
+  "version": "1.0.0",
+  "description": "The Edinburgh Gut Cell Atlas 1D viewer is a web-based application to view and browse an abstract model of human gut.",
+  "main": "dist/index_bundle.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "url-loader": "^4.1.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.13",
+    "@babel/preset-env": "^7.18.10",
+    "babel-loader": "^8.2.5",
+    "css-content-loader": "^1.0.0",
+    "css-loader": "^6.7.1",
+    "file-loader": "^6.2.0",
+    "json-loader": "^0.5.7",
+    "style-loader": "^3.3.1",
+    "svg-url-loader": "^8.0.0",
+    "webpack": "^5.74.0",
+    "webpack-bundle-analyzer": "^4.6.1",
+    "webpack-cli": "^4.10.0"
+  }
+}
