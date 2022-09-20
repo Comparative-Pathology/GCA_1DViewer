@@ -4,7 +4,6 @@ import './modules/GCA_Utilities/src/GCA_Utilities.css';
 
 
 import anatomyData from './gca_anatomy_h_v1.json'
-import modelData from '../models/EdinGCA_1D_00010_1_15.json'
 
 window.viewer1dIcons = importAll(require.context('./Icons', false, /\.svg$/));
 window.jsonAnatomy = anatomyData;
