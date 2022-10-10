@@ -35,7 +35,7 @@ class ZoomPanel extends DisplayPanel{
 		super(container, parent, model, 'zoomBkgColor');
 		this.lr = lr;
 		this.ctx.textAlign = "center";
-		this.layersVisible = false;
+		this.layersVisible = true;
 		this.xOffset = 0;
 		this.transform = new ViewTransform(this.panelWidth-this.xOffset, 0, this.lr, 0, 10, -this.xOffset);
 		this.regionBoxes = new Array();
