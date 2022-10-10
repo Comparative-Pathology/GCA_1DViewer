@@ -203,6 +203,17 @@ class Theme {
 		return this.instance;
 	}
 
+	static get currentThemeIndex() {
+		return this.instance.currentThemeIndex;
+	}
+
+	static setTheme(i=0) {
+		if (i !== this.instance.currentThemeIndex) {
+			this.instance.currentThemeIndex = i % themes.length;
+			this.instance.theme = themes[this.instance.currentThemeIndex];
+		}	
+	};
+
 	static nextTheme(i=null) {
 		if (i !== this.instance.currentThemeIndex) {
 			this.instance.currentThemeIndex = (i? i : this.instance.currentThemeIndex + 1) % themes.length;
