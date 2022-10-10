@@ -19,6 +19,7 @@ class PopupDialogs {
 		this.container = container || document.body;
 		this.markerDialog = new MarkerDialog(this.container);
 		this.roiDialog = new RoiDialog(this.container);
+		this.settingsDialog = new SettingsDialog(this.container);
 		this.regionPopup = new RegionPopup(this.container);
 		this.modelPopup = new ModelPopup(this.container);
 		this.messagePopup = new MessagePopup(this.container);
@@ -39,6 +40,10 @@ class PopupDialogs {
 			
 	static get roiDialog() {
 		return this.instance.roiDialog;
+	}
+			
+	static get settingsDialog() {
+		return this.instance.settingsDialog;
 	}
 			
 	static get regionPopup() {
@@ -126,7 +131,7 @@ class MarkerDialog extends PopupDialog {
 	
 }
 
-/** @class RoiDialog encapsulating the ROI settimg dialog.
+/** @class RoiDialog encapsulats the ROI settings dialog
  */
 class RoiDialog extends PopupDialog {
 	/**
@@ -219,12 +224,12 @@ class RoiDialog extends PopupDialog {
 		this.roiMid.onblur = this.updateMid.bind(this, this.roiMid);
 		this.roiCursor.onblur = this.updateCursor.bind(this, this.roiCursor);
 	}
-	
+/*	
 	save() {
 		this.updateRoi(this.roi);
 		this.dialog.dialog( "close" );
 	}
-
+*/
 	cancel() {
 		this.updateRoi(this.savedRoi);
 		this.dialog.dialog( "close" );
@@ -464,6 +469,95 @@ class RoiDialog extends PopupDialog {
 
 /**************************************************************************
 */
+
+/** @class SettingsDialog encapsulates the app settings dialog
+ */
+class SettingsDialog extends PopupDialog {
+	/**
+	 * Creates an instance of the SettingsDialog.  
+	 *
+	 * @constructor
+	 * @param {object} parent represents the parent object for the SettingsDialog object
+	 */
+
+	constructor(container) {
+		let content = ` <label for="theme">Theme:</label>
+						<select id="theme" name="theme">
+						   <option value="0">White</option>
+						   <option value="1">Gray</option>
+						   <option value="2">Dark</option>
+						</select>
+						<br/></p>
+					 	<input type="checkbox" id="lr" name="lr" title="Check to set display direction from left to right" tabindex="-1">
+						<label id="lr-label" for="lr" class="label" >Display from left to right</label>
+						<br/></p>
+					 	<input type="checkbox" id="layers" name="layers" title="Check to display intestin wall layer" tabindex="-1">
+						<label id="layers-label" for="layers" class="label" >Display intestin wall layers</label>
+						`; 		
+			
+		super('settings-dialog', 'Change settings', content, container);
+		
+		this.configDialog({ autoOpen: false,	
+							hide: "puff",
+							show : "slide",
+							width:250,
+							modal: true,
+							buttons: {
+								Save: this.save.bind(this),
+								Cancel: this.cancel.bind(this)
+							},
+							dialogClass: "no-close"  // to remove the close button
+							
+						}, false);
+	}
+	
+	init() {
+		this.theme = $("#theme")[0];
+		this.lr = $("input[name='lr']")[0];
+		this.layers = $("input[name='layers']")[0];// $("#layers")[0];
+	}
+	
+	open(theme, lr, showLayers, saveSettings, target=null) {
+		if(target) {
+			let targetBox = target.getBoundingClientRect();
+			this.dialog.dialog({position: {of: window, my: 'right top', at: `left+${targetBox.left + 1} top+${targetBox.bottom + 1}`, collision: 'fit fit'}});
+		}
+		this.dialog.tabindex="-1"
+		this.theme.value = theme;
+		this.lr.checked = lr;
+		this.layers.checked = showLayers;
+		this.saveSettings = saveSettings;	
+		this.dialog.dialog("open");
+	}
+	
+	save() {
+		this.saveSettings(this.theme.value, this.lr.checked, this.layers.checked);		
+		this.dialog.dialog( "close" );
+	}
+
+	cancel() {
+		this.dialog.dialog( "close" );
+	}
+	
+/*
+
+	refresh(roi) {
+		this.roiBranch[roi.branchIndex].checked = true; 
+		this.roiWidthSlider.value = roi.width;
+		this.roiWidth.value = roi.width;
+//		this.roiMid.value = (roi.pos + Math.round(roi.width/2 * 10) / 10).toFixed(1);
+		this.roiMid.value = roi.pos + Math.round(roi.width/2 * 10) / 10;
+		this.roiStart.value = roi.pos
+		this.roiEnd.value = roi.pos + roi.width;
+		this.roiCursor.value = roi.cursorPos
+		this.roi = roi;
+	}
+*/
+}
+
+
+/**************************************************************************
+*/
 class RegionPopup extends InfoPopup {
 	/**
 	 * Creates an instance of Region Popup.  
@@ -492,6 +586,7 @@ class RegionPopup extends InfoPopup {
 		this.end = $(`#region-end`)[0];
 		this.uberon = $(`#region-uberon`)[0];
 	}
+	
 	
 	showContent(region) {
 		this.name.textContent = region.description;
