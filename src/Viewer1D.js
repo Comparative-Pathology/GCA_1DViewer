@@ -499,6 +499,12 @@ class Viewer1D extends EventTarget {
 			Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'show layers').on('click', this.toggleLayers.bind(this));
 		}
 */		
+
+		c -= r + gap;
+		img = 'left-right-arrow.svg';
+		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'Change ROI', 0.88).on('click', this.sliderPanel.openRoiDialog.bind(this.sliderPanel));
+
+
 		img = 'settings-gear.svg';
 		c -= r + gap;
 		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'Settings', 0.88).on('click', this.openSettingsDialog.bind(this));
@@ -680,10 +686,10 @@ class Viewer1D extends EventTarget {
 	}
 
 	openSettingsDialog(e){
-		Core.PopupDialogs.settingsDialog.open(this.themeIndex, this.lr, this.layersVisible, this.saveSettings.bind(this), e.target);
+		Core.PopupDialogs.settingsDialog.open(this.themeIndex, this.lr, this.layersVisible, this.sliderPanel.getDisplayModeIndex(), this.saveSettings.bind(this), e.target);
 	}
 
-	saveSettings(themeIndex, lr, layersVisible) {
+	saveSettings(themeIndex, lr, layersVisible, displayMode) {
 		if(this.themesIndex != themeIndex) { 
 			Core.Theme.setTheme(themeIndex);
 			this.themeIndex = themeIndex;
@@ -693,10 +699,12 @@ class Viewer1D extends EventTarget {
 		if (this.lr != lr) {
 			this.toggleL2R();
 		}
+
 		if(this.layersVisible != layersVisible) {
 			this.toggleLayers();
 		}
-			
+		
+		this.sliderPanel.setDisplay(displayMode);	
 	}
 	
 }

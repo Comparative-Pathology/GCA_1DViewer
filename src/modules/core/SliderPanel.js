@@ -44,17 +44,13 @@ class SliderPanel extends DisplayPanel{
 	initializePanel() {
 		this.mode = 'full';
 	}
-/*
+
 	initializeSliders() {
 		this.sliders = new Array();
-		
-		let mainModel = this.gutModel.getSubModel('main');
-		let extModel = this.gutModel.getSubModel(1, 0);
+		let mainModel = this.gutModel.getSubModel(0); //'colon'
+		let extModel = this.gutModel.getSubModel(1, 0);  // 'ileum'';
 		let ileumModel = extModel; //this.gutModel.getSubModel('ileum', 0);
-		let showExpandBtn = ((this.mode == 'main' || this.mode == 'full') && extModel != null);
-		let showOverlapBtn = extModel != null;
-		let iconSize = (showExpandBtn || showOverlapBtn)? 20 : 0;
-		let offset = iconSize + 5;
+		let offset = 5;
 		let width = this.panelWidth - offset;
 		if (this.mode=='main' || extModel == null || this.mode == 'overlap') {
 			let model = (this.mode=='overlap')? this.gutModel : mainModel;
@@ -67,21 +63,21 @@ class SliderPanel extends DisplayPanel{
 			let extModelScale = (l2 < .35*l2)? 1 : .33* l1 / l2
 			
 			let length = mainModel.getLength() + extModel.getLength() * extModelScale;
-			let w = width - this.sliderGap
-			let w1 = mainModel.getLength() * w / length;
-			let w2 = extModel.getLength() * w / length * extModelScale;
-			let h1 = 0.54 * this.ctx.height();
+			let w = width; //- this.sliderGap
+//			let h1 = Math.max(0.50 * this.ctx.height(), 40);
+//			let h2 = Math.max(0.48 * this.ctx.height(), 40);
+			let h1 = 0.50 * this.ctx.height();
 			let h2 = 0.48 * this.ctx.height();
-			
-			this.sliders[0] = new Slider(0, this, mainModel, w1, this.lr? 0 :-w2-this.sliderGap - offset, h1);
-			this.sliders[1] = new Slider(1, this, extModel, w2, this.lr? w1+this.sliderGap: - offset, h1 );
-			this.sliders[2] = new Slider(2, this, ileumModel, w, this.lr? 0 :-this.sliderGap-offset, h2, h1-1);
-		}
-		if(showOverlapBtn) {
-			this.addControlButtons(width, iconSize, showExpandBtn);
+			let vGap = Math.min(this.ctx.height() - h1 - h2, 50); 
+
+//			this.sliders[0] = new Slider(0, this, mainModel, w1, this.lr? 0 :-w2-this.sliderGap - offset, h1);
+			this.sliders[0] = new Slider(0, this, mainModel, width, this.lr? 0 : -offset, h1);
+//			this.sliders[1] = new Slider(1, this, ileumModel, w, this.lr? 0 :-this.sliderGap-offset, h2, h1-1);
+			this.sliders[1] = new Slider(1, this, ileumModel, w, this.lr? 0 :-offset, h2, h1+vGap);
 		}
 	}
-*/
+
+/*
 	initializeSliders() {
 		this.sliders = new Array();
 		let mainModel = this.gutModel.getSubModel(0); //'colon'
@@ -121,6 +117,7 @@ class SliderPanel extends DisplayPanel{
 			this.addControlButtons(width, iconSize, showExpandBtn);
 		}
 	}
+*/
 
 //*************************************************************** */
 //*************************************************************** */
@@ -187,7 +184,6 @@ class SliderPanel extends DisplayPanel{
 //*************************************************************** */
 //*************************************************************** */
 	addControlButtons(width, size, expandBtn) {
-		
 		let margin = 1//this.parent.ctx.margin;
 		let cx = this.lr? width - margin + size/2 : margin + size/2;
 		let gap = (this.panelHeight - 3*size)/4;
@@ -200,12 +196,10 @@ class SliderPanel extends DisplayPanel{
 		}
 
 		cy += gap + size; 
-//		img = expandBtn? 'combine-merge-arrow.svg' : 'overlap-view.svg';
 		img = 'overlap-view.svg';
 		UtilityViewer1D.showIcon(this.ctx, img, size, cx, cy, 'Toggle overlap view', 0.88).on('click', this.toggleOverlap.bind(this));
 
 		cy += gap + size; 
-//		img = 'width.svg';
 		img = 'left-right-arrow.svg';
 		UtilityViewer1D.showIcon(this.ctx, img, size, cx, cy, 'Change ROI', 0.88).on('click', this.openRoiDialog.bind(this));
 	}
@@ -339,6 +333,43 @@ class SliderPanel extends DisplayPanel{
 		this.redraw();
 		this.sliders[this.currentSlider].dispatchRoiChange();   // Refresh the zoom panel (this needed when the zoom panel diplayes an overlapping section)
 	}
+
+
+	getDisplayModeIndex() {
+		return (this.mode === 'full')? 0 : ((this.mode === 'overlap')? 2 : 1); 
+	}
+
+	setDisplay(displayMode) {
+		switch(displayMode) {
+			case 0:	// diplay colon & ileum separately
+				if(this.mode === 'main') {
+					this.toggleExtension();
+				}
+				if(this.mode === 'overlap') {
+					this.toggleOverlap();
+				}				
+				break;
+			case 1: // only diplay colon 
+				if(this.mode === 'full') {
+					this.toggleExtension();
+				}
+				if(this.mode === 'overlap') {
+					this.toggleOverlap();
+					this.toggleExtension();
+				}		
+				break;		
+			case 2: // diplay colon & ileum overlapping
+				if(this.mode === 'main') {
+					this.toggleExtension();
+					this.toggleOverlap();
+				}
+				if(this.mode === 'full') {
+					this.toggleOverlap();
+				}				
+				break;
+		}
+	}
+
 
 	static findRoiShares(roi, model) {
 		let extensionMin = roi.pos + roi.width;

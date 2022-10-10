@@ -493,6 +493,13 @@ class SettingsDialog extends PopupDialog {
 						<br/></p>
 					 	<input type="checkbox" id="layers" name="layers" title="Check to display intestin wall layer" tabindex="-1">
 						<label id="layers-label" for="layers" class="label" >Display intestin wall layers</label>
+						<br/></p>
+						<label for="sliders">Display:</label>
+						<select id="sliders" name="sliders">
+						   <option value="0">Colon & Ileum</option>
+						   <option value="1">Colon</option>
+						   <option value="2">Colon & Ileum overlapping</option>
+						</select>
 						`; 		
 			
 		super('settings-dialog', 'Change settings', content, container);
@@ -515,9 +522,10 @@ class SettingsDialog extends PopupDialog {
 		this.theme = $("#theme")[0];
 		this.lr = $("input[name='lr']")[0];
 		this.layers = $("input[name='layers']")[0];// $("#layers")[0];
+		this.slidersDisplay = $("#sliders")[0];
 	}
 	
-	open(theme, lr, showLayers, saveSettings, target=null) {
+	open(theme, lr, showLayers, displayMode, saveSettings, target=null) {
 		if(target) {
 			let targetBox = target.getBoundingClientRect();
 			this.dialog.dialog({position: {of: window, my: 'right top', at: `left+${targetBox.left + 1} top+${targetBox.bottom + 1}`, collision: 'fit fit'}});
@@ -526,12 +534,13 @@ class SettingsDialog extends PopupDialog {
 		this.theme.value = theme;
 		this.lr.checked = lr;
 		this.layers.checked = showLayers;
+		this.slidersDisplay.value = displayMode;
 		this.saveSettings = saveSettings;	
 		this.dialog.dialog("open");
 	}
 	
 	save() {
-		this.saveSettings(this.theme.value, this.lr.checked, this.layers.checked);		
+		this.saveSettings(Number(this.theme.value), this.lr.checked, this.layers.checked, Number(this.slidersDisplay.value));		
 		this.dialog.dialog( "close" );
 	}
 
@@ -539,20 +548,6 @@ class SettingsDialog extends PopupDialog {
 		this.dialog.dialog( "close" );
 	}
 	
-/*
-
-	refresh(roi) {
-		this.roiBranch[roi.branchIndex].checked = true; 
-		this.roiWidthSlider.value = roi.width;
-		this.roiWidth.value = roi.width;
-//		this.roiMid.value = (roi.pos + Math.round(roi.width/2 * 10) / 10).toFixed(1);
-		this.roiMid.value = roi.pos + Math.round(roi.width/2 * 10) / 10;
-		this.roiStart.value = roi.pos
-		this.roiEnd.value = roi.pos + roi.width;
-		this.roiCursor.value = roi.cursorPos
-		this.roi = roi;
-	}
-*/
 }
 
 
