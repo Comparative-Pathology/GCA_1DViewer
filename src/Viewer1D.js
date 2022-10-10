@@ -21,8 +21,8 @@ import { UberonPanel } from './core/UberonPanel.js';
 import { Gut, Marker } from './core/GCA_1D_Model.js';
 import { Theme } from './core/Theme.js';
 import { UtilityViewer1D } from './core/Utility.js';
+import { PopupDialogs } from './PopupDialogs.js';
 import { TabbedPanel } from './core/TabbedPanel.js';
-import { PopupDialogs } from './core/PopupDialogs.js';
 import { GutAnatomy } from './core/Anatomy.js';
 */
 
@@ -62,6 +62,7 @@ class Viewer1D extends EventTarget {
 		this.fullView = true;
 		this.noTitlePanel = true
 		this.containersVisible = true;
+		this.layersVisible = true;
 		this.container = Util.Utility.addElement(container, 'div', 'wraper1D', 'hidden-scroll'); //creating a wrapper div inside the specified container
 		Core.Theme.initialize(this.container, this.themeIndex);
 		Core.PopupDialogs.initialize(this.container);
@@ -221,7 +222,7 @@ class Viewer1D extends EventTarget {
 	 * greater than the maximum value. If no index is provided the next theme will be selected.   
 	 */
 	changeTheme(index=null) {
-		Core.Theme.nextTheme(index);
+		this.themeIndex = Core.Theme.nextTheme(index);
 		this.textTabbedPanel.updateTheme();
 		this.redraw();
 	}
@@ -483,7 +484,7 @@ class Viewer1D extends EventTarget {
 //		img = this.fullView? 'line-angle-up.svg' : 'line-angle-down.svg';
 		let tooltip = (this.fullView? 'Hide' : 'Show') + ' zoom view';
 		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, tooltip, 0.75).on('click', this.toggleFullView.bind(this));
-
+/*
 		img = 'theme-change.svg';
 		c -= r + gap;
 		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'Change theme').on('click', this.toggleTheme.bind(this));
@@ -497,6 +498,11 @@ class Viewer1D extends EventTarget {
 			c -= r + gap;
 			Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'show layers').on('click', this.toggleLayers.bind(this));
 		}
+*/		
+		img = 'settings-gear.svg';
+		c -= r + gap;
+		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'Settings', 0.88).on('click', this.openSettingsDialog.bind(this));
+
 /*
 		img = 'colon.svg';
 		c -= r + gap;
@@ -671,6 +677,26 @@ class Viewer1D extends EventTarget {
 		this.gutModel.clearMarkers();
 		this.zoomPanel.redraw();
 //		return markers? JSON.parse(markers) : null;
+	}
+
+	openSettingsDialog(e){
+		Core.PopupDialogs.settingsDialog.open(this.themeIndex, this.lr, this.layersVisible, this.saveSettings.bind(this), e.target);
+	}
+
+	saveSettings(themeIndex, lr, layersVisible) {
+		if(this.themesIndex != themeIndex) { 
+			Core.Theme.setTheme(themeIndex);
+			this.themeIndex = themeIndex;
+			this.redraw()
+		}
+		
+		if (this.lr != lr) {
+			this.toggleL2R();
+		}
+		if(this.layersVisible != layersVisible) {
+			this.toggleLayers();
+		}
+			
 	}
 	
 }
