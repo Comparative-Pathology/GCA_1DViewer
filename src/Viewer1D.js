@@ -29,7 +29,6 @@ import { GutAnatomy } from './core/Anatomy.js';
 import * as Core from './modules/core.js';
 import * as Util from './modules/GCA_Utilities.js';
 
-
 export { Viewer1D };
 
 const WidthLimit = 800;				// Minimum width of the display, smaller window size results in horizontal scrolling
@@ -39,7 +38,7 @@ const buttomMargin = 3.5;
 
 if (typeof cssImported === 'undefined') {
 	let currentPath = Util.getCurrentScriptPath(1)
-    Util.Utility.addStylesheet(currentPath + '/src//modules/GCA_Utilities/external/jquery-ui/jquery-ui.min.css');
+    Util.Utility.addStylesheet(currentPath + '/src/modules/GCA_Utilities/external/jquery-ui/jquery-ui.min.css');
     Util.Utility.addStylesheet(currentPath + '/src/modules/GCA_Utilities/src/GCA_Utilities.css');
     Util.Utility.addStylesheet(currentPath + '/src/css/GCA_1DViewer.css'); 
 }

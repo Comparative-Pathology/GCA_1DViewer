@@ -15,23 +15,22 @@ let capitalizeFirst = (string) => string.toLowerCase().replace(/(^\w|\s\w)/g, m 
 
 // Get the current script file path
 let getCurrentScriptPath = function(level=0) {
-	// Get the current script file location 
-    	let location = (new Error()).stack.split('\n')[1].split('@').pop();
-		let lastIndex = location.lastIndexOf('/');
-		let path = '';
-		if (lastIndex > 0) { 
-			path = location.substr(0, lastIndex);
-		}
-    	while (level>0 && lastIndex>0) {
-			lastIndex = path.lastIndexOf('/', lastIndex);
-			if (lastIndex > 0) { 
-    			path = path.substr(0, lastIndex);
-			}
-			level--; 
-		}
-		return path;
-	};
-
+	// Get the current script file location
+	let stackLines = (new Error()).stack.split('\n');
+	let callerIndex = 0;
+	for(let i in stackLines){
+		if(!stackLines[i].match(/(file|http):\/\//)) 
+			continue;
+		if(stackLines[i].indexOf('getCurrentScriptPath') >= 0 ) 
+			continue;
+		callerIndex = Number(i);
+		break;
+	}
+	let pathParts = stackLines[callerIndex].match(/(((file|http):\/\/.+\/)([^\/]+\.js))/i);
+	let p = pathParts[2].split('\/')
+	p.length = Math.max(1, p.length - level - 1);
+	return p.join('\/');
+};
 
 /** @class Utility encapsulates a set of static utility functions */
 class Utility {
