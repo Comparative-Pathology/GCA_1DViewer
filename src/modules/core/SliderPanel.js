@@ -34,11 +34,12 @@ class SliderPanel extends DisplayPanel{
 	 * @param {number} vOffset vertical offset of the panel
 	 * @param {boolean} lr false specifes the direction of linear model display from left to right or right to left 
 	 */
-	constructor(container, parent, model, lr = false) {
+	constructor(container, parent, model, absolutePositions=true, lr = false) {
 		super(container, parent, model, 'sliderBkgColor');
 		this.lr = lr;
 		this.sliderGap = 5;
 		this.mode = 'full';
+		this.absolutePositions = absolutePositions;
 	}
 
 	initializePanel() {
@@ -48,21 +49,21 @@ class SliderPanel extends DisplayPanel{
 	initializeSliders() {
 		this.sliders = new Array();
 		let mainModel = this.gutModel.getSubModel(0); //'colon'
-		let extModel = this.gutModel.getSubModel(1, 0);  // 'ileum'';
-		let ileumModel = extModel; //this.gutModel.getSubModel('ileum', 0);
+		let ileumModel = this.gutModel.getSubModel(1, 0);  // 'ileum'';
 		let offset = 5;
 		let width = this.panelWidth - offset;
-		if (this.mode=='main' || extModel == null || this.mode == 'overlap') {
-			let model = (this.mode=='overlap')? this.gutModel : mainModel;
+		if (this.mode=='main' || this.mode=='ext' || ileumModel == null || this.mode == 'overlap') {
+//			let model = (this.mode=='overlap')? this.gutModel : mainModel;
+			let model = (this.mode=='overlap')? this.gutModel : (this.mode=='main')? mainModel : ileumModel;
 			this.sliders[0] = new Slider(0, this, model, width, this.lr? 0 : -offset, this.ctx.height());
 			this.currentSlider = 0;
 		}
 		else {
 			let l1 = mainModel.getLength();
-			let l2 = extModel.getLength();
+			let l2 = ileumModel.getLength();
 			let extModelScale = (l2 < .35*l2)? 1 : .33* l1 / l2
 			
-			let length = mainModel.getLength() + extModel.getLength() * extModelScale;
+			let length = mainModel.getLength() + ileumModel.getLength() * extModelScale;
 			let w = width; //- this.sliderGap
 //			let h1 = Math.max(0.50 * this.ctx.height(), 40);
 //			let h2 = Math.max(0.48 * this.ctx.height(), 40);
@@ -71,9 +72,9 @@ class SliderPanel extends DisplayPanel{
 			let vGap = Math.min(this.ctx.height() - h1 - h2, 50); 
 
 //			this.sliders[0] = new Slider(0, this, mainModel, w1, this.lr? 0 :-w2-this.sliderGap - offset, h1);
-			this.sliders[0] = new Slider(0, this, mainModel, width, this.lr? 0 : -offset, h1);
+			this.sliders[0] = new Slider(0, this, mainModel, this.absolutePositions, width, this.lr? 0 : -offset, h1);
 //			this.sliders[1] = new Slider(1, this, ileumModel, w, this.lr? 0 :-this.sliderGap-offset, h2, h1-1);
-			this.sliders[1] = new Slider(1, this, ileumModel, w, this.lr? 0 :-offset, h2, h1+vGap);
+			this.sliders[1] = new Slider(1, this, ileumModel, this.absolutePositions, w, this.lr? 0 :-offset, h2, h1+vGap);
 		}
 	}
 
@@ -209,7 +210,15 @@ class SliderPanel extends DisplayPanel{
 		this.currentSlider = 0;
 		if (slidersStatus != null) {
 			this.mode = slidersStatus.displayMode;
-			rois = slidersStatus.rois;
+			if (this.mode === 'main') {
+				rois[0] = slidersStatus.rois[0];
+			}
+			else if(this.mode === 'ext') {
+				rois[0] = slidersStatus.rois[1];
+			}
+			else {						
+				rois = slidersStatus.rois;
+			}
 			this.currentSlider = slidersStatus.currentSlider;
 		}	
 		this.initializeSliders()
@@ -224,9 +233,19 @@ class SliderPanel extends DisplayPanel{
 	getSlidersStatus() {
 		if (!this.sliders)
 			return null;
-		let rois = [];
-		for(let slider of this.sliders) 
-			rois.push(slider.getRoiExtents());
+		let rois = this.status? this.status.rois : null;
+		if(!rois) {
+			rois = []
+		}
+		
+		for(let i=0; i<this.sliders.length; i++) {
+			if(i==0 && this.display == 'ext') {
+				rois[1] = this.sliders[i].getRoiuExtents();l
+				break
+			}
+			rois[i]	= this.sliders[i].getRoiExtents();
+		}
+			
 		return {displayMode: this.mode, currentSlider: this.currentSlider, rois: rois};
 	}
 	
@@ -288,6 +307,11 @@ class SliderPanel extends DisplayPanel{
 		}	
 		this.sliders[sliderIndex].activateRoi();
 		this.parent.changeZoomedViewGutModel(this.sliders[sliderIndex].gutModel);
+/*		
+		if(this.status) {
+			this.status.rois[sliderIndex] = this.sliders[sliderIndex].getRoiExtents();
+		}
+*/
 	}
 
 	getCurrentGutModel() {
@@ -334,42 +358,67 @@ class SliderPanel extends DisplayPanel{
 		this.sliders[this.currentSlider].dispatchRoiChange();   // Refresh the zoom panel (this needed when the zoom panel diplayes an overlapping section)
 	}
 
+	updateDisplay(mode) {
+		if (this.mode == mode) {
+			return;
+		}
+		let status = this.status || this.getSlidersStatus();	
+		status.displayMode = mode;
+		if (mode === 'overlap') {
+			if (status.currentSlider > 0) {
+				status.rois[0] = status.rois[1];
+				status.rois[0].pos += this.getCurrentGutModel().startPos;
+				status.rois[0].cursorPos += this.getCurrentGutModel().startPos;
+			}
+			this.sliders[this.currentSlider].dispatchRoiChange();   // Refresh the zoom panel (this needed when the zoom panel diplayes an overlapping section)
+		}
+		else {
+			if (this.mode === 'overlap') {
+				let roiShares = SliderPanel.findRoiShares(status.rois[status.currentSlider], this.gutModel);
+				status.currentSlider = (roiShares.main >= roiShares.ext)? 0 : 1; 
+				if (status.currentSlider > 0) {
+					status.rois[1] = status.rois[0];
+					let posOffset =  this.gutModel.getSubModel(1).startPos;  //ileum
+					status.rois[1].pos -= posOffset;
+					status.rois[1].cursorPos -= posOffset;
+				}
+			}			
+			if(mode === 'full') {
+//				status.currentSlider = 0; 
+			}
+			
+			if(mode === 'main') {
+				status.currentSlider = 0;
+			}
+			if(mode === 'ext') { 
+				status.currentSlider = 0;
+			}
+		}
+		
+		this.status = status;
+		this.redraw();
+	}
 
 	getDisplayModeIndex() {
-		return (this.mode === 'full')? 0 : ((this.mode === 'overlap')? 2 : 1); 
+		return (this.mode === 'full')? 0 : (this.mode === 'overlap')? 3 : (this.mode === 'main')? 1 : 2; 
 	}
 
 	setDisplay(displayMode) {
 		switch(displayMode) {
 			case 0:	// diplay colon & ileum separately
-				if(this.mode === 'main') {
-					this.toggleExtension();
-				}
-				if(this.mode === 'overlap') {
-					this.toggleOverlap();
-				}				
+				this.updateDisplay('full')
 				break;
-			case 1: // only diplay colon 
-				if(this.mode === 'full') {
-					this.toggleExtension();
-				}
-				if(this.mode === 'overlap') {
-					this.toggleOverlap();
-					this.toggleExtension();
-				}		
+			case 1: // diplay colon alone 
+				this.updateDisplay('main')
 				break;		
-			case 2: // diplay colon & ileum overlapping
-				if(this.mode === 'main') {
-					this.toggleExtension();
-					this.toggleOverlap();
-				}
-				if(this.mode === 'full') {
-					this.toggleOverlap();
-				}				
+			case 2: // diplay ileum alone 
+				this.updateDisplay('ext')
+				break;
+			case 3: // diplay colon & ileum overlapping
+				this.updateDisplay('overlap')
 				break;
 		}
 	}
-
 
 	static findRoiShares(roi, model) {
 		let extensionMin = roi.pos + roi.width;
@@ -410,13 +459,15 @@ class Slider {
 	 * @param {number} index a integer specifyin the slider in the slider panel
 	 * @param {object} parent represents the parent object for the panel which is usually an instance of Viewer1D
 	 * @param {object} model gut 1D model  
+	 * @param {boolean} absolutePositions specifes the display of positions being absolute values from the model statr or relative to the model regions   
 	 * @param {number} width width of the slider
 	 * @param {number} hOffset horizontal offset of the slider to position the slider
 	 */
-	constructor(index, parent, model, width, hOffset, height, vOffset=0) {
+	constructor(index, parent, model, absolutePositios=true, width, hOffset, height, vOffset=0) {
 		this.index = index;
 		this.parent = parent
 		this.gutModel = model;
+		this.absolutePositions = absolutePositios
 		this.lr = parent.lr;
 		this.ctx = this.parent.ctx;
 		this.initializeSlider(width, hOffset, height, vOffset);
@@ -514,11 +565,15 @@ class Slider {
 		let startX = this.transform.getX(startPos);
 		let endX = this.transform.getX(endPos); 
 		let x = startX;
-		let text = this.ctx.text(startPos + '').font(Theme.currentTheme.posFont).addClass('small-text');
-		this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
-		let adjust = Math.min(text.length() / 2, Math.max(0, this.transform.getMargin() - 1));
-		let textOffset = this.lr ? adjust : text.bbox().width - adjust;
-		text.x(x - textOffset).y(this.yPosTxt);
+		let text;
+		let textOffset;
+		if(this.absolutePositions) {
+			text = this.ctx.text(startPos + '').font(Theme.currentTheme.posFont).addClass('small-text');
+			this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
+			let adjust = Math.min(text.length() / 2, Math.max(0, this.transform.getMargin() - 1));
+			textOffset = this.lr ? adjust : text.bbox().width - adjust;
+			text.x(x - textOffset).y(this.yPosTxt);
+		}
 		let regionsTitles = [];
 		let positions = [];
 		for (let region of this.gutModel.regions) {
@@ -536,19 +591,22 @@ class Slider {
 			regionsTitles.push(title);
 			x = this.transform.getX(region.endPos);
 			this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
-			text = this.ctx.text(region.endPos + '').font(Theme.currentTheme.posFont).addClass('small-text');
-			text.cx(x).y(this.yPosTxt);
+			if(this.absolutePositions) {
+				text = this.ctx.text(region.endPos + '').font(Theme.currentTheme.posFont).addClass('small-text');
+				text.cx(x).y(this.yPosTxt);
+				positions.push(text);
+			}
 			this.regionNodes.push(regionRect.node);
 			i++;
-			positions.push(text);
 		}
 				
+		if(this.absolutePositions) {
+			this.adjustTitles(positions, this.lr, 3, false); // shift flag is false (titles will not be moved if there is space around them)
+			let adjust = Math.min(text.length() / 2, Math.max(0, this.transform.getMargin() - 1));
+			textOffset = this.lr ? text.bbox().width - adjust : adjust;
+			text.x(x - textOffset).y(this.yPosTxt);
+		}
 		
-		this.adjustTitles(positions, this.lr, 3, false); // shift flag is false (titles will not be moved if there is space around them)
-		
-		adjust = Math.min(text.length() / 2, Math.max(0, this.transform.getMargin() - 1));
-		textOffset = this.lr ? text.bbox().width - adjust : adjust;
-		text.x(x - textOffset).y(this.yPosTxt);
 
 		i = 0;
 //		let regionWidths = this.gutModel.regions.map(re)
@@ -1142,11 +1200,23 @@ class Slider {
 		}
 		let pos = Math.round(this.transform.getPos(x));
 		pos = this.transform.clampPos(pos);
-		cursor.text = cursor.text.text(pos+'');
+		
+		let posText = this.absolutePositions? pos+'' : this.getRelativePositionText(pos);
+		cursor.text = cursor.text.text(posText);
 
 		cursor.show();
 		cursor.text.cx(x);
 		cursor.polygon.cx(x);
+/*
+		let coordinateText = this.ctx.text(text).font(Theme.currentTheme.coordinateFont).addClass('medium-text').y(3);
+		if (this.lr) {
+			coordinateText.x(gap);
+		}
+		else {
+			coordinateText.x(this.panelWidth - 2*gap - startCoordinate.length());
+		}
+*/
+
 
 		let y = this.base - this.gutThickness / 2;
 		let regionIndex = this.gutModel.findRegionIndex(pos, 2);  // 2:both branches
@@ -1155,6 +1225,16 @@ class Slider {
 		} 
 		let txtHeight = this.cursor.text.bbox().height;
 		cursor.y(y - txtHeight - 4);
+	}
+
+	getRelativePositionText(pos){
+		let regionIndex = this.gutModel.findRegionIndex(pos, this.currentBranch);
+		let region = this.gutModel.regions[regionIndex];
+		let len = this.gutModel.getLength();
+		let posPcnt = Math.round(pos / len * 100);
+		let posRelative = pos - region.startPos; 
+		let posRelativePcnt = Math.round(posRelative / region.size * 100);
+		return region.name + ':' + posRelativePcnt + '%'
 	}
 
 	handleMouseout(e) {

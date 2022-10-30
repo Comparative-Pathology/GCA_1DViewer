@@ -25,17 +25,20 @@ class ZoomPanel extends DisplayPanel{
 	 * @constructor
 	 * @param {object} parent represents the parent object for the zoom view which is usually an instance of Viewer1D
 	 * @param {string} model gut 1D model  
+	 * @param {boolean} absolutePositions specifes the display of positions being absolute values from the model statr or relative to the model regions   
 	 * @param {number} width width of the zoom panel
 	 * @param {number} height height of the zoom panel
 	 * @param {object} roi represents the region of interest in the gut usually provided by the slider panel 
 	 * @param {number} level represent model's abstraction level (not in use)
 	 * @param {boolean} lr specifes the direction of the linear model display from left to right or right to left 
 	 */
-	constructor(container, parent, model, lr = false) {
+
+	constructor(container, parent, model, absolutePositios=true, layersVisible=true, lr = false) {
 		super(container, parent, model, 'zoomBkgColor');
 		this.lr = lr;
 		this.ctx.textAlign = "center";
-		this.layersVisible = true;
+		this.layersVisible = layersVisible;
+		this.absolutePositions = absolutePositios
 		this.xOffset = 0;
 		this.transform = new ViewTransform(this.panelWidth-this.xOffset, 0, this.lr, 0, 10, -this.xOffset);
 		this.regionBoxes = new Array();
@@ -150,11 +153,15 @@ class ZoomPanel extends DisplayPanel{
 
 */
 		this.drawLayersTitles();	// this will adjust the xOffset 
+
 		
-		let startCoordinate = this.ctx.text(startLandmark + ':' + Math.round(startPosRelative) + 'mm (' + startPosRelativePcnt + '%)')
-										.font(Theme.currentTheme.coordinateFont).addClass('medium-text').y(3);
-		let endCoordinate = this.ctx.text(endLandmark + ':' + Math.round(endPosRelative) + 'mm (' + endPosRelativePcnt + '%)')
-										.font(Theme.currentTheme.coordinateFont).addClass('medium-text').y(3);
+		let startText = startLandmark + ':';
+		startText += this.absolutePositions? Math.round(startPosRelative) + 'mm (' + startPosRelativePcnt + '%)' : startPosRelativePcnt + '%';
+		let startCoordinate = this.ctx.text(startText).font(Theme.currentTheme.coordinateFont).addClass('medium-text').y(3);
+		
+		let endText = endLandmark + ':';
+		endText += this.absolutePositions? Math.round(endPosRelative) + 'mm (' + endPosRelativePcnt + '%)' : endPosRelativePcnt + '%';
+		let endCoordinate = this.ctx.text(endText).font(Theme.currentTheme.coordinateFont).addClass('medium-text').y(3);
 
 		if (this.lr) {
 			startCoordinate.x(gap);
@@ -234,20 +241,22 @@ class ZoomPanel extends DisplayPanel{
 		}
 		
 		let pos = this.startRegion.startPos;
-		
 		let x = this.transform.getX(this.startPos);
-		let suffix = '';//' (' + Math.round(this.startPos / this.gutModel.getLength() * 100) + '%)'; 
-		let text = this.ctx.text(Math.round(this.startPos) + suffix).font(Theme.currentTheme.posFont).addClass('medium-text');
 		if(this.startPos == pos) {
 			this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
 		}
-		let adjust = Math.min(text.length()/2, Math.max(0, this.transform.getMargin() - 1));
-		let textOffset = this.lr ? adjust : text.bbox().width - adjust;
-		if (this.startRegion.endPos - this.startPos > this.transform.x2pos(text.length())) {
-			text.x(x - textOffset).y(this.yPosTxt);
-		}
-		else {
-			text.remove();
+		let suffix = '';//' (' + Math.round(this.startPos / this.gutModel.getLength() * 100) + '%)';
+		let text;
+		if(this.absolutePositions) {
+			text = this.ctx.text(Math.round(this.startPos) + suffix).font(Theme.currentTheme.posFont).addClass('medium-text');
+			let adjust = Math.min(text.length()/2, Math.max(0, this.transform.getMargin() - 1));
+			let textOffset = this.lr ? adjust : text.bbox().width - adjust;
+			if (this.startRegion.endPos - this.startPos > this.transform.x2pos(text.length())) {
+				text.x(x - textOffset).y(this.yPosTxt);
+			}
+			else {
+				text.remove();
+			}
 		}
 		this.regionBoxes = [];
 		this.markerIcons = [];
@@ -273,24 +282,26 @@ class ZoomPanel extends DisplayPanel{
 				this.overlapVisible = true;
 			}
 			this.regionBoxes.push(regionBox);
-			pos += region.size;
-			pos = Math.min(this.endPos, pos);
-			x = this.transform.getX(pos);
-			if (region.endPos == pos) 
-				this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
-			suffix = '';
-//			if (i==endRegion) 
-//				suffix = ' (' + Math.round(this.endPos / this.gutModel.getLength() * 100) + '%)'; 
-			text = this.ctx.text(Math.round(pos) + suffix).font(Theme.currentTheme.posFont).addClass('medium-text');
-			text.cx(x).y(this.yPosTxt);
-	//		adjust = Math.min(text.length() / 2, Math.max(0, this.transform.getMargin() - 1));
-	//		textOffset = this.lr ? text.bbox().width - adjust : adjust;
-			if (this.endPos - this.endRegion.startPos > this.transform.x2pos(text.length())) {
-	//			text.x(x - textOffset).y(this.yPosTxt);
+			if(this.absolutePositions) {
+				pos += region.size;
+				pos = Math.min(this.endPos, pos);
+				x = this.transform.getX(pos);
+				if (region.endPos == pos) 
+					this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
+				suffix = '';
+	//			if (i==endRegion) 
+	//				suffix = ' (' + Math.round(this.endPos / this.gutModel.getLength() * 100) + '%)'; 
+				text = this.ctx.text(Math.round(pos) + suffix).font(Theme.currentTheme.posFont).addClass('medium-text');
 				text.cx(x).y(this.yPosTxt);
-			}
-			else {
-				text.remove();
+		//		adjust = Math.min(text.length() / 2, Math.max(0, this.transform.getMargin() - 1));
+		//		textOffset = this.lr ? text.bbox().width - adjust : adjust;
+				if (this.endPos - this.endRegion.startPos > this.transform.x2pos(text.length())) {
+		//			text.x(x - textOffset).y(this.yPosTxt);
+					text.cx(x).y(this.yPosTxt);
+				}
+				else {
+					text.remove();
+				}
 			}
 		}
 		
@@ -378,7 +389,7 @@ class ZoomPanel extends DisplayPanel{
 	drawLandmarks() {
 		let titles = []
 		let i = 0;
-		for (let landmark of this.gutModel.landmarks) {
+		for (let landmark of this.gutModel.landmarks){
 			if (landmark.type == 'pseudo') {
 				continue;
 			}
@@ -430,16 +441,17 @@ class ZoomPanel extends DisplayPanel{
 			if (titleBox) {
 				titles.push(titleBox.title)
 			}
-
 			title.cx(x + textOffset);
 			if (Math.abs(this.gutModel.getClosestRegionPos(pos) - pos) > 5)	 {
 				let y = this.y1PosTick; // + Math.round((this.base-this.gutThickness/2.0-this.y1PosTick)/2.0);
 				this.ctx.line(x, y, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
-				let text = this.ctx.text(`${pos}`).font(Theme.currentTheme.posFont).addClass('medium-text');
-				text.cx(x).y(this.yPosTxt);
+				if(this.absolutePositions) {
+					let text = this.ctx.text(`${pos}`).font(Theme.currentTheme.posFont).addClass('medium-text');
+					text.cx(x).y(this.yPosTxt);
+				}
 			}
 			i++;
-		}
+		} 
 		return titles
 	}
 
@@ -538,7 +550,7 @@ class ZoomPanel extends DisplayPanel{
 		this.cursor = this.ctx.group();
 		this.cursor.polygon = this.cursor.polygon().plot(polygon).stroke(Theme.currentTheme.cursor).fill(Theme.currentTheme.cursorFill);
 //		this.cursor.line(0,0)
-		this.cursor.text = this.cursor.text('x').font(Theme.currentTheme.cursorFont).addClass('small-text');
+		this.cursor.text = this.cursor.text('x').font(Theme.currentTheme.cursorFont);//.addClass('small-text');
 		let textHeight = this.cursor.text.bbox().height;
 		this.cursor.text.cx(0).y(-textHeight - 3);
 		this.cursor.draggable();
@@ -554,8 +566,18 @@ class ZoomPanel extends DisplayPanel{
 		} 
 		let txtHeight = this.cursor.text.bbox().height;
 		this.cursor.cx(x).y(y - txtHeight - 4);
-		this.cursor.text = this.cursor.text.text(Math.round(pos) + '');
+		
+		let posText = this.absolutePositions? Math.round(pos)+'' : this.getRelativePositionText(pos);
+		this.cursor.text = this.cursor.text.text(posText);
 		this.cursor.text.cx(x);
+	}
+
+	getRelativePositionText(pos){
+		let regionIndex = this.gutModel.findRegionIndex(pos, this.currentBranch);
+		let region = this.gutModel.regions[regionIndex];
+		let posRelative = pos - region.startPos; 
+		let posRelativePcnt = Math.round(posRelative / region.size * 100);
+		return region.name + ':' + posRelativePcnt + '%'
 	}
 
 	handleCursorDrag(e) {

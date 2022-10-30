@@ -55,14 +55,16 @@ class AnnotationPanel extends DisplayPanel {
 	 * @constructor
 	 * @param {object} parent represents the parent object for the annotation view which is usually an instance of Viewer1D
 	 * @param {string} model gut 1D model  
+	 * @param {boolean} absolutePositions specifes the display of positions being absolute values from the model statr or relative to the model regions   
 	 * @param {number} width width of the annotation panel
 	 * @param {number} height height of the annotation panel
 	 * @param {object} roi represents the region of interest in the gut usually provided by the slider panel 
 	 * @param {boolean} lr specifes the direction of the linear model display from left to right or right to left 
 	 */
-	constructor(container, parent, model) {
+	constructor(container, parent, model, absolutePositios=true) {
 		super(container, parent, model, 'annotationBkgColor');
 		this.populateAnnotations();
+		this.absolutePositions = absolutePositios
 		this.roi = null;
 	}
 
@@ -390,8 +392,13 @@ class AnnotationPanel extends DisplayPanel {
 				f3 = Theme.currentTheme.annotationDescFontBlur;				
 			}
 			let pos = annotation.pos[0] + ((annotation.pos.length>1)? ' - ' + annotation.pos[1] : '');
-			text.tspan(pos).font(f1).x(bbox.width + margin);
-			text.tspan(annotation.title).font(f2).x(bbox.width + margin + gap1 );
+			if(this.absolutePositions) {
+				text.tspan(pos).font(f1).x(bbox.width + margin);
+				text.tspan(annotation.title).font(f2).x(bbox.width + margin + gap1 );
+			}
+			else {
+				text.tspan(annotation.title).font(f2).x(margin );
+			}
 			text.tspan(annotation.description).font(f3).dx(gap1);
 
 			let d = 14;
