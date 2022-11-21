@@ -53,15 +53,14 @@ class Viewer1D extends EventTarget {
 	 * @param {number} theme specifies display theme index from a set of predefined themes  
 	 * @param {boolean} lr false specifies the direction of linear model display from left to right or right to left 
 	 */
-	constructor(container, theme=0, lr=false, ) {
+	constructor(container, theme, lr ) {
 		super();
+		this.loadSettings(theme, lr);
+		
+		
 //		this.parent = parent;		
-		this.lr = lr;
-		this.themeIndex = theme;
-		this.fullView = true;
 		this.noTitlePanel = true
 		this.containersVisible = true;
-		this.layersVisible = true;
 		this.container = Util.Utility.addElement(container, 'div', 'wraper1D', 'hidden-scroll'); //creating a wrapper div inside the specified container
 		Core.Theme.initialize(this.container, this.themeIndex);
 		Core.PopupDialogs.initialize(this.container);
@@ -93,8 +92,7 @@ class Viewer1D extends EventTarget {
 	 * @param readyCallback callback function to run when the Viewer is ready
 	 */
 
-	loadModel(modelFile, modelReadyCallback) {
-		
+ 	loadModel(modelFile, modelReadyCallback) {
 		if (!this.gutAnatomy) {
 			this.gutAnatomy = new Core.GutAnatomy();
 			this.gutAnatomy.loadJsonAnatomy(null) // or pass an anatomy file url
@@ -304,11 +302,11 @@ class Viewer1D extends EventTarget {
 	createPanels() {	
 		this.titlePanel = new Core.TitlePanel(this.titlePanelContainer, this, this.gutModel);
 		
-		this.sliderPanel = new Core.SliderPanel(this.sliderPanelContainer, this, this.gutModel, this.lr);
+		this.sliderPanel = new Core.SliderPanel(this.sliderPanelContainer, this, this.gutModel, this.absolutePositions, this.lr);
 		
-		this.zoomPanel = new Core.ZoomPanel(this.zoomPanelContainer, this, this.gutModel, this.lr);
+		this.zoomPanel = new Core.ZoomPanel(this.zoomPanelContainer, this, this.gutModel, this.absolutePositions, this.layersVisible, this.lr);
 		
-		this.annotationPanel = new Core.AnnotationPanel(this.textTabbedPanel.tabContainers[0], this, this.sliderPanel.gutModel, Core.Theme.currentTheme.annotationBkgColor, null);
+		this.annotationPanel = new Core.AnnotationPanel(this.textTabbedPanel.tabContainers[0], this, this.sliderPanel.gutModel, this.absolutePositions, Core.Theme.currentTheme.annotationBkgColor, null);
 		this.textTabbedPanel.setTabListener(0, this.annotationPanel, this.annotationPanel.handleTabEvents);
 
 		this.uberonPanel = new Core.UberonPanel(this.textTabbedPanel.tabContainers[1], this);
@@ -570,6 +568,7 @@ class Viewer1D extends EventTarget {
 	
 	toggleLayers() {
 		this.zoomPanel.toggleLayersVisible();
+		this.layersVisible = !this.layersVisible;
 	}
 	
 	handleRoiChange(e) {
@@ -685,25 +684,97 @@ class Viewer1D extends EventTarget {
 	}
 
 	openSettingsDialog(e){
-		Core.PopupDialogs.settingsDialog.open(this.themeIndex, this.lr, this.layersVisible, this.sliderPanel.getDisplayModeIndex(), this.saveSettings.bind(this), e.target);
+		let status = { themeIndex: 	this.themeIndex, 
+					   lr:			this.lr, 
+					   showLayers:	this.zoomPanel.layersVisible, 
+					   displayMode:	this.sliderPanel.getDisplayModeIndex(),
+					   positions:	this.absolutePositions,					
+					   zoomVisible: this.zoomVisibleByDefault
+					}
+		Core.PopupDialogs.settingsDialog.open(status, this.saveSettings.bind(this), e.target);
 	}
 
-	saveSettings(themeIndex, lr, layersVisible, displayMode) {
-		if(this.themesIndex != themeIndex) { 
-			Core.Theme.setTheme(themeIndex);
-			this.themeIndex = themeIndex;
-			this.redraw()
+	saveSettings(status) {
+		let redrawFlag = false;
+		
+		if(this.themeIndex != status.themeIndex) { 
+			Core.Theme.setTheme(status.themeIndex);
+			this.themeIndex = status.themeIndex;
+			redrawFlag = true;
 		}
 		
-		if (this.lr != lr) {
+		if(this.absolutePositions != status.positions) {
+			this.absolutePositions = status.positions;
+			this.sliderPanel.absolutePositions = status.positions;
+			this.zoomPanel.absolutePositions = status.positions;
+			this.annotationPanel.absolutePositions = status.positions;
+			redrawFlag = true;
+		}
+
+		if (this.lr != status.lr) {
 			this.toggleL2R();
+			redrawFlag = false;
 		}
 
-		if(this.layersVisible != layersVisible) {
+		if(this.zoomPanel.layersVisible != status.layersVisible) {
 			this.toggleLayers();
+			redrawFlag = false;
+		}
+
+		this.sliderPanel.setDisplay(status.displayMode);
+		
+		this.zoomVisibleByDefault = status.zoomVisible;
+		
+		if(redrawFlag) {
+			this.redraw();
 		}
 		
-		this.sliderPanel.setDisplay(displayMode);	
+		this.storeSettings()	
 	}
+
+	loadSettings(theme, lr) {
+		this.fullView = true;
+		this.layersVisible = true;
+		this.zoomVisibleByDefault = true;
+		this.absolutePositions = true;
+		if(!window.localStorage) {
+			this.themeIndex = (theme == undefined)? 0 : theme;
+			this.lr = (lr == undefined)? false : lr;
+			return;
+		}
+		let savedLr = localStorage.getItem("LR");
+		let savedTheme = localStorage.getItem("Theme");
+		let savedZoomVisible = localStorage.getItem("ZoomVisible");
+		let savedLayers = localStorage.getItem("Layers");
+		let savedPositions = localStorage.getItem("AbsolutePositions");
+		
+		this.themeIndex = (theme == undefined)? ((savedTheme!='undefined' && savedLayers !== null)? Number(savedTheme) : 0) : theme;
+		this.lr = (lr == undefined)? (savedLr!='undefined' && savedLr!==null)? (savedLr=='true') : false : lr;
+		if (savedZoomVisible !== 'undefined' && savedZoomVisible !== null) { 
+			this.fullView = this.zoomVisibleByDefault = savedZoomVisible=='true';
+			this.z = savedZoomVisible=='true';
+		}
+		if (savedLayers !== 'undefined' && savedLayers !== null) {
+			this.layersVisible = savedLayers=='true';
+		}
+
+		if (savedPositions !== 'undefined' && savedPositions !== null) {
+			this.absolutePositions = savedPositions=='true';
+		}
+	}
+	
+	storeSettings() {
+		if(!window.localStorage) {
+			return;
+		}
+		localStorage.setItem("LR", this.lr);
+		localStorage.setItem("Theme", this.themeIndex);
+		localStorage.setItem("Layers", this.layersVisible);
+		localStorage.setItem("ZoomVisible", this.zoomVisibleByDefault);
+		localStorage.setItem("AbsolutePositions", this.absolutePositions);
+		localStorage.setItem("Sliders", this.displayMode);
+		
+	}
+	
 	
 }
