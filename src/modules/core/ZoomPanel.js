@@ -567,17 +567,18 @@ class ZoomPanel extends DisplayPanel{
 		let txtHeight = this.cursor.text.bbox().height;
 		this.cursor.cx(x).y(y - txtHeight - 4);
 		
-		let posText = this.absolutePositions? Math.round(pos)+'' : this.getRelativePositionText(pos);
+		let posText
+		if(this.absolutePositions) {
+			posText = Math.round(pos) + '';
+		}
+		else {
+			let relPos = this.gutModel.getRelativePosition(pos, this.currentBranch);
+			posText = relPos.region + ':' + relPos.pos + '%';
+		}
+
+//		let posText = this.absolutePositions? Math.round(pos)+'' : this.getRelativePositionText(pos);
 		this.cursor.text = this.cursor.text.text(posText);
 		this.cursor.text.cx(x);
-	}
-
-	getRelativePositionText(pos){
-		let regionIndex = this.gutModel.findRegionIndex(pos, this.currentBranch);
-		let region = this.gutModel.regions[regionIndex];
-		let posRelative = pos - region.startPos; 
-		let posRelativePcnt = Math.round(posRelative / region.size * 100);
-		return region.name + ':' + posRelativePcnt + '%'
 	}
 
 	handleCursorDrag(e) {

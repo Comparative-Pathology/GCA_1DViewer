@@ -115,15 +115,24 @@ class Gut {
 		return gut;
 	}
 
-	static newMethod(item, region) {
-		let anatomyNode = GutAnatomy.findAnatomyById(item.anatomy[0].id);
-		region.layers = [];
-		for (let i = 0; i < GutAnatomy.visibleIntstinalLayers.length; i++) {
-			let layer = GutAnatomy.visibleIntstinalLayers[i];
-			let layerAnatomies = GutAnatomy.findAnatomyByName(layer, anatomyNode, false);
-			region.layers[layer] = (layerAnatomies && layerAnatomies.length > 0);
+	getRelativePosition(pos, branch, defaultRegion=null){  
+		let regionIndices = this.findAllRegionsIndices(pos, branch);
+		let regionIndex = regionIndices[0];
+		if(defaultRegion!=null) {
+			let k = regionIndices.indexOf(defaultRegion);
+			if(k>=0) {
+				regionIndex = regionIndices[k]
+			}
 		}
-		region.layers['Lumen'] = true;
+		let region = this.regions[regionIndex];
+		let posRelative = pos - region.startPos; 
+		let posRelativePcnt = Math.round(posRelative / region.size * 100);
+		return { region:region.name, pos: posRelativePcnt }
+	}
+
+	getAbsolutePosition(regionIndex, percent){
+		let region = this.regions[regionIndex];
+		return region.startPos + (region.endPos - region.startPos) * percent / 100; 
 	}
 
 	static createGutModelFromXml(modelXmlText) {
@@ -349,9 +358,21 @@ class Gut {
 		return closest;
 	}
 	
-	findRegionIndex(pos, branch=0) {
+	findAllRegionsIndices(pos, branch=0) {
+		let indices = []
+		let startRegionIndex = 0;
+		let regionIndex;
+		while ((regionIndex=this.findRegionIndex(pos, branch, startRegionIndex)) != null) {
+			indices.push(regionIndex);
+			startRegionIndex = (regionIndex.extension? regionIndex.extension : regionIndex) + 1 
+			
+		}
+		return indices;
+	}
+	
+	findRegionIndex(pos, branch, startIndex=0) {
 		let r = {main:null, extension:null};
-		for (let i=0; i<this.regions.length; i++) {
+		for (let i=startIndex; i<this.regions.length; i++) {
 			if (pos>=this.regions[i].startPos && pos<=this.regions[i].endPos) {
 				if (this.regions[i].branch === 0) {
 					if (branch === 0)
@@ -364,6 +385,10 @@ class Gut {
 				}
 			}
 		}
+		if(r.main==null && r.extension==null) {
+			return null
+		}
+		
 		if (branch === 2)  //'both'
 			return r;
 		if (branch === 0)  //'colon'

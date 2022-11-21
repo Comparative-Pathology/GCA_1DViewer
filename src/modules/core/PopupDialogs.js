@@ -19,6 +19,7 @@ class PopupDialogs {
 		this.container = container || document.body;
 		this.markerDialog = new MarkerDialog(this.container);
 		this.roiDialog = new RoiDialog(this.container);
+		this.roiDialogRelative = new RoiDialogRelative(this.container);
 		this.settingsDialog = new SettingsDialog(this.container);
 		this.regionPopup = new RegionPopup(this.container);
 		this.modelPopup = new ModelPopup(this.container);
@@ -40,6 +41,10 @@ class PopupDialogs {
 			
 	static get roiDialog() {
 		return this.instance.roiDialog;
+	}
+			
+	static get roiDialogRelative() {
+		return this.instance.roiDialogRelative;
 	}
 			
 	static get settingsDialog() {
@@ -224,28 +229,23 @@ class RoiDialog extends PopupDialog {
 		this.roiMid.onblur = this.updateMid.bind(this, this.roiMid);
 		this.roiCursor.onblur = this.updateCursor.bind(this, this.roiCursor);
 	}
-/*	
-	save() {
-		this.updateRoi(this.roi);
-		this.dialog.dialog( "close" );
-	}
-*/
+
 	cancel() {
 		this.updateRoi(this.savedRoi);
 		this.dialog.dialog( "close" );
 	}
 	
-	open(roi, updateRoi, branches, minZoomLength=1, maxZoomLength=1000) {
+	open(roi, updateRoi, branches, absolutePositions) {
 		this.dialog.tabindex="-1"
-		this.MinZoomLength = minZoomLength;
-		this.MaxZoomLength = maxZoomLength;
-		this.roiWidthSlider.min = this.roiWidth.min = minZoomLength;
-		this.roiWidthSlider.max = this.roiWidth.max = maxZoomLength;
+		this.absolutePositions = absolutePositions;
+
 		this.roi = roi;
 		this.roi.pos = Math.round(this.roi.pos)
 		this.roi.cursorPos = Math.round(this.roi.cursorPos)
 		this.roi.width = Math.round(this.roi.width)
-		this.refresh(this.roi)
+
+		this.setModel(branches[roi.branchIndex].model);
+
 		this.savedRoi =  Object.assign({}, roi);
 		this.updateRoi = updateRoi;
 		this.maxSize = branches[roi.branchIndex].length;
@@ -265,9 +265,18 @@ class RoiDialog extends PopupDialog {
 			this.setState('WM') 
 		}
 
-//setTimeout(this.test1.bind(this), 600);
 		this.dialog.dialog("open");
 	}
+
+
+    setModel(model) {
+		this.model = model;
+		this.maxZoomLength = model.getLength();
+		this.minZoomLength = 1;
+		this.roiWidthSlider.min = this.roiWidth.min = 1;
+		this.roiWidthSlider.max = this.roiWidth.max = this.maxZoomLength;
+		this.refresh(this.roi)
+    }
 
 	updateStatus(src) {
 		let id = src.value;
@@ -337,6 +346,8 @@ class RoiDialog extends PopupDialog {
 		}
 		this.roi.branchIndex = branch;
 		this.updateRoi(this.roi)
+		this.setModel(this.branches[this.roi.branchIndex].model);
+
 	}
 
 	updateRoiSize(src, e) {
@@ -366,7 +377,7 @@ class RoiDialog extends PopupDialog {
 		} 
 
 //		this.roi.width = Math.round(width);
-		this.updateRoi(roi)
+		this.applyChanges(roi)
 	}
 
 	updateStart(src){
@@ -394,7 +405,7 @@ class RoiDialog extends PopupDialog {
 			}
 			this.roi.pos = pos;  
 		}
-		this.updateRoi(this.roi)
+		this.applyChanges(this.roi)
 	}
 
 	updateEnd(src){
@@ -421,7 +432,7 @@ class RoiDialog extends PopupDialog {
 			}
 			this.roi.pos = endPos - this.roi.width;  
 		}
-		this.updateRoi(this.roi)
+		this.applyChanges(this.roi)
 	}
 
 	updateMid(src){
@@ -437,7 +448,7 @@ class RoiDialog extends PopupDialog {
 		if(this.state != 'WM') {
 			this.setState('WM')
 		}
-		this.updateRoi(this.roi)
+		this.applyChanges(this.roi)
 	}
 
 	updateCursor(src){
@@ -449,11 +460,12 @@ class RoiDialog extends PopupDialog {
 			return;
 		}
 		this.roi.cursorPos = clamp(pos, this.roi.pos, this.roi.pos+this.roi.width);
-		this.updateRoi(this.roi)
+		this.applyChanges(this.roi)
 	}
 
 	refresh(roi) {
-		this.roiBranch[roi.branchIndex].checked = true; 
+		this.roiBranch[roi.branchIndex].checked = true;
+		
 		this.roiWidthSlider.value = roi.width;
 		this.roiWidth.value = roi.width;
 //		this.roiMid.value = (roi.pos + Math.round(roi.width/2 * 10) / 10).toFixed(1);
@@ -461,9 +473,378 @@ class RoiDialog extends PopupDialog {
 		this.roiStart.value = roi.pos
 		this.roiEnd.value = roi.pos + roi.width;
 		this.roiCursor.value = roi.cursorPos
+		
 		this.roi = roi;
 	}
+	
+	applyChanges(roi) {
+		this.updateRoi(roi)
+		this.refresh(roi)
+	}
+	
+	
+}
 
+
+/** @class RoiDialog encapsulats the ROI settings dialog
+ */
+class RoiDialogRelative extends PopupDialog {
+	/**
+	 * Creates an instance of the RoiDialog.  
+	 *
+	 * @constructor
+	 * @param {object} parent represents the parent object for the RoiDialog object which is usually an instance of the SliderPanel
+	 */
+
+	constructor(container) {
+		let MinZoomLength = 1;
+		let MaxZoomLength = 1000;
+		let value = 50;
+		let content = ` <div id='roi-dialog-branches'>
+							<span class="label">Path:</span> 
+	 						<input type="radio" id="roi-branch" name="roi-branch" value="0" tabindex="-1">
+							<label for="roi-branch-colon">Colon</label>
+							<input type="radio" id="roi-branch" name="roi-branch" value="1" tabindex="-1">
+							<label for="roi-branch-ileum">Small intestine</label>
+							<p/>
+						</div>
+						<div class="roi-slidercontainer" style="width:100%; height:20px;">
+							<table style="width:100%; border-spacing:0 10px;">
+							  <tr>
+								<td id="roi-start-label" style="width:1%" class="label" >Distal:</td>	
+								<td style="padding-right:5px">
+								  <input type="range" min="0" tabindex="-1" 
+									 class="roi-slider" name="roi-start-slider" id="roi-start-slider" style="width:100%"></input>
+								</td>
+								<td style="width:1%">
+									<select id="roi-start-region" name="roi-start-region"></select>
+								</td>
+								<td style="width:1%">
+									<input name="roi-start-region-pos" id="roi-start-region-pos" type="NUMBER" min="${-1}"  
+										max="${101}" step="1" value="${value}" size="8" 
+										style="position:relative; left:0px"></input>
+								</td>
+								<td>&percnt;</td>
+							  </tr>
+							  <tr>
+								<td id="roi-end-label" style="width:1%" class="label" >Proximal:</td>	
+								<td style="padding-right:5px">
+								  <input type="range" min="${MinZoomLength}" max="${MaxZoomLength}" value="${value}" tabindex="-1" 
+									 class="roi-slider" name="roi-end-slider" id="roi-end-slider" style="width:100%"></input>
+								</td><td style="width:1%">
+									<select id="roi-end-region" name="roi-end-region"></select>
+								</td>
+								<td style="width:1%">
+									<input name="roi-end-region-pos" id="roi-end-region-pos" type="NUMBER" min="${-1}"  
+										max="${101}" step="1" value="${value}" size="8" 
+										style="position:relative; left:0px"></input>
+								</td>
+								<td>&percnt;</td>
+							  </tr>
+							  <tr>
+								<td id="roi-cursor-label" style="width:1%" class="label" >Cursor:</td>	
+								<td style="padding-right:5px">
+								  <input type="range" min="${MinZoomLength}" max="${MaxZoomLength}" value="${value}" tabindex="-1" 
+									 class="roi-slider" name="roi-cursor-slider" id="roi-cursor-slider" style="width:100%"></input>
+								</td><td style="width:1%">
+									<select id="roi-cursor-region" name="roi-cursor-region"></select>
+								</td>
+								  <td style="width:1%">
+									<input name="roi-cursor-region-pos" id="roi-cursor-region-pos" type="NUMBER" min="${-1}"  
+										max="${101}" step="1" value="${value}" size="8" style="position:relative; left:0px"></input>
+								</td>
+								<td>&percnt;</td>
+							  </tr>
+							</table>
+						</div>
+						`; 		
+			
+		super('roi-dialog-relative', 'Set Region Of Interest', content, container);
+		
+		this.configDialog({ autoOpen: false,	
+							hide: "puff",
+							show : "slide",
+							width:380,
+							height:240,
+							modal: true,
+							buttons: {
+								Save: this.close.bind(this),
+								Cancel: this.cancel.bind(this)
+							},
+							dialogClass: "no-close"  // to remove the close button
+//							buttons: [{ text: "Ok", icon: "ui-icon-heart", click: this.cancel.bind(this), tabindex:"-1"  }]
+							
+						}, false);
+		this.stateIds = ['W', 'M', 'S', 'E']		
+	}
+	
+	init() {
+		this.roiStartSlider = $("#roi-start-slider")[0]
+		this.roiStartRegion = $("#roi-start-region")[0]
+		this.roiStartRegionPos = $("#roi-start-region-pos")[0]
+
+		this.roiEndSlider = $("#roi-end-slider")[0]
+		this.roiEndRegion = $("#roi-end-region")[0]
+		this.roiEndRegionPos = $("#roi-end-region-pos")[0]
+
+		this.roiCursorSlider = $("#roi-cursor-slider")[0]
+		this.roiCursorRegion = $("#roi-cursor-region")[0]
+		this.roiCursorRegionPos = $("#roi-cursor-region-pos")[0]
+
+		this.roiBranch = $("input[name='roi-branch']")
+		this.roiBranchesDiv = $("#roi-dialog-branches")[0]
+		for (let checkbox of this.roiBranch) {
+				checkbox.oninput = this.updateRoiBranch.bind(this, checkbox);
+		}
+
+  		this.roiStartSlider.oninput = this.updateRoiStart.bind(this);
+  		this.roiEndSlider.oninput = this.updateRoiEnd.bind(this, this.roiEndSlider);
+  		this.roiCursorSlider.oninput = this.updateRoiCursor.bind(this, this.roiCursorSlider);
+
+		this.roiStartRegion.onchange = this.updateRoiStartRegion.bind(this);
+		this.roiEndRegion.onchange = this.updateRoiEndRegion.bind(this);
+		this.roiCursorRegion.onchange = this.updateRoiCursorRegion.bind(this);
+		
+		this.roiStartRegionPos.onchange = this.updateRoiStartRegion.bind(this); 
+		this.roiEndRegionPos.onchange = this.updateRoiEndRegion.bind(this); 
+		this.roiCursorRegionPos.onchange = this.updateRoiCursorRegion.bind(this); 
+	}
+
+	cancel() {
+		this.updateRoi(this.savedRoi);
+		this.dialog.dialog( "close" );
+	}
+	
+	open(roi, updateRoi, branches, absolutePositions) {
+		this.dialog.tabindex="-1"
+		this.branches = branches;
+		this.absolutePositions = absolutePositions;
+		
+		this.roi = roi;
+		this.roi.pos = Math.round(this.roi.pos)
+		this.roi.cursorPos = Math.round(this.roi.cursorPos)
+		this.roi.width = Math.round(this.roi.width)
+
+		this.savedRoi =  Object.assign({}, roi);
+		this.updateRoi = updateRoi;
+		this.roiBranchesDiv.style.display = (branches.length > 1)? 'block' : 'none';
+
+		this.setModel(branches[roi.branchIndex].model);
+		
+		this.dialog.dialog("open");
+	}
+
+    setModel(model) {
+		this.model = model;
+		this.maxSize = model.getLength();//this.branches[roi.branchIndex].length;
+		
+        for (let i = this.roiStartRegion.length - 1; i >= 0; i--) {
+            this.roiStartRegion.remove(i);
+            this.roiEndRegion.remove(i);
+            this.roiCursorRegion.remove(i);
+        }
+
+        this.regions = model.regions.map(x => x.name);
+        for (let i = 0; i < this.regions.length; i++) {
+            this.roiStartRegion.add(new Option(this.regions[i], i));
+            this.roiEndRegion.add(new Option(this.regions[i], i));
+            this.roiCursorRegion.add(new Option(this.regions[i], i));
+        }
+        this.roiStartSlider.max = this.roiEndSlider.max = this.roiCursorSlider.max = model.getLength();
+        this.refresh(this.roi);
+    }
+
+	updateRoiBranch(src) {
+		let branch = Number(src.value);
+		if (branch == this.roi.branchIndex) {
+			return
+		}
+		this.roi.branchIndex = branch;
+		this.updateRoi(this.roi)
+		this.setModel(this.branches[this.roi.branchIndex].model);
+	}
+
+	updateRoiStart(){
+		if(isNaN(this.roiStartSlider.value) || this.roiStartSlider.value<0){ // invalid input
+			return;
+		}
+		let pos = Number(this.roiStartSlider.value);
+		if(pos == this.roi.pos) {
+			return;
+		}
+		
+		this.setRoiStart(pos);
+
+/*		
+
+		pos = clamp(pos, 0, this.maxSize-1);
+		let endPos = this.roi.pos + this.roi.width;
+
+
+		pos = Math.min(pos, endPos-1)
+/*		
+		if (pos < endPos) {
+			pos = Math.min(pos, endPos-1)
+		}
+		else {
+			pos = Math.min(this.maxSize-1, pos)
+			this.roi.width = 1;	
+		}
+* /
+		this.roi.width = endPos - pos
+		this.roi.pos = pos;
+		this.roi.cursorPos = Math.max(this.roi.cursorPos, pos)
+		this.updateRoi(this.roi)		
+		this.refresh()
+*/		
+	}
+
+	adjustRegion(region, percent) { //checks for percent being less han 0 or abve 100 and adjust the region
+		if(percent<0) {
+			if(region > 0) {
+				region--;
+				percent = 100;
+			}
+			else {
+				percent = 0;
+			}
+		}
+		if(percent>100) {
+			if(region < this.regions.length -1) {
+				region++;
+				percent = 0;
+			}
+			else {
+				percent = 100;
+			}
+		}
+		return {region: region, percent: percent}
+	}
+	
+	updateRoiStartRegion(){
+		if(isNaN(this.roiStartRegionPos.value)){ // invalid input
+			return;
+		}
+		let regionIndex = Number(this.roiStartRegion.value);
+		let percent = Number(this.roiStartRegionPos.value);
+		let newPosition = this.adjustRegion(regionIndex, percent) 
+		let pos = Math.round(this.model.getAbsolutePosition(newPosition.region, newPosition.percent))
+		if(pos == this.roi.pos && newPosition.region == Number(this.roiStartRegion.value)) {
+			return;
+		}
+		
+		this.setRoiStart(pos, false, newPosition.region);
+	}
+
+	setRoiStart(pos, fixEndPos=true, regionIndex=null) {
+		pos = clamp(pos, 0, this.maxSize - 1);
+		let endPos = this.roi.pos + this.roi.width;
+		//		pos = Math.min(pos, endPos-1)
+		if (pos < endPos || fixEndPos) {
+			pos = Math.min(pos, endPos - 1);
+			this.roi.width = endPos - pos;
+		}
+		else {
+			pos = Math.min(this.maxSize - 1, pos);
+			this.roi.width = 1;
+		}
+		this.roi.pos = pos;
+		this.roi.cursorPos = Math.max(this.roi.cursorPos, pos);
+		this.updateRoi(this.roi);
+		this.refresh(regionIndex);
+	}
+
+	updateRoiEnd(src){
+		if(isNaN(src.value) || src.value<0){ // invalid input
+			return;
+		}
+		let pos = Number(src.value);
+		this.setRoiEnd(pos);
+	}
+
+	updateRoiEndRegion(){
+		if(isNaN(this.roiEndRegionPos.value)){ // invalid input
+			return;
+		}
+		let regionIndex = Number(this.roiEndRegion.value);
+		let percent = Number(this.roiEndRegionPos.value);
+		let newPosition = this.adjustRegion(regionIndex, percent) 
+		let pos = Math.round(this.model.getAbsolutePosition(newPosition.region, newPosition.percent))
+
+		if(pos == this.roi.pos+this.roi.width && newPosition.region == Number(this.roiEndRegion.value)) {
+			return;
+		}
+		this.setRoiEnd(pos, false, newPosition.region);
+	}
+
+	setRoiEnd(pos, fixStartPos=true, regionIndex=null) {
+		if(pos == this.roi.pos+this.roi.width && regionIndex==null) {
+			return;
+		}
+		pos = clamp(pos, 1, this.maxSize);
+		let startPos = this.roi.pos;		
+		pos = Math.max(pos, startPos+1)
+		this.roi.width = pos - startPos
+		this.roi.cursorPos = Math.min(this.roi.cursorPos, pos)
+		this.updateRoi(this.roi)		
+		this.refresh(regionIndex)
+	}
+
+	updateRoiCursor(src){
+		if(isNaN(src.value) || src.value<0){ // invalid input
+			return;
+		}
+		let pos = Number(src.value);
+		this.setRoiCursor(pos)
+	}
+
+	updateRoiCursorRegion(){
+		if(isNaN(this.roiCursorRegionPos.value)){ // invalid input
+			return;
+		}
+		let regionIndex = Number(this.roiCursorRegion.value);
+		let percent = Number(this.roiCursorRegionPos.value);
+		let newPosition = this.adjustRegion(regionIndex, percent) 
+		let pos = Math.round(this.model.getAbsolutePosition(newPosition.region, newPosition.percent))
+		if(pos == this.roi.cursorPos && newPosition.region == Number(this.roiCursorRegion.value)) {
+			return;
+		}
+
+		this.setRoiCursor(pos, newPosition.region);
+	}
+
+	setRoiCursor(pos, regionIndex=null){
+		if(pos == this.roi.cursorPos && regionIndex==null) {
+			return;
+		}
+		this.roi.cursorPos = clamp(pos, this.roi.pos, this.roi.pos+this.roi.width);
+		this.updateRoi(this.roi)
+		this.refresh(regionIndex)
+	}
+	
+	refresh(regionIndex=null) {
+		let roi=this.roi;
+		this.roiBranch[roi.branchIndex].checked = true;
+		
+		this.roiStartSlider.value = roi.pos;
+		this.roiEndSlider.value = roi.pos + roi.width;
+		this.roiCursorSlider.value = roi.cursorPos;
+
+		let startPos = this.model.getRelativePosition(roi.pos, roi.branchIndex, regionIndex);
+		this.roiStartRegion.value = this.regions.indexOf(startPos.region) + '';
+		this.roiStartRegionPos.value = startPos.pos;
+		
+		let endPos = this.model.getRelativePosition(roi.pos+roi.width, roi.branchIndex, regionIndex);
+		this.roiEndRegion.value = this.regions.indexOf(endPos.region) + '';
+		this.roiEndRegionPos.value = endPos.pos;
+		
+		let cursorPos = this.model.getRelativePosition(roi.cursorPos, roi.branchIndex, regionIndex);
+		this.roiCursorRegion.value = this.regions.indexOf(cursorPos.region) + '';
+		this.roiCursorRegionPos.value = cursorPos.pos;
+		
+		this.roi = roi;
+	}
+	
 }
 
 
@@ -492,14 +873,27 @@ class SettingsDialog extends PopupDialog {
 						<label id="lr-label" for="lr" class="label" >Display from left to right</label>
 						<br/></p>
 					 	<input type="checkbox" id="layers" name="layers" title="Check to display intestin wall layer" tabindex="-1">
-						<label id="layers-label" for="layers" class="label" >Display intestin wall layers</label>
+						<label id="layers-label" for="layers" class="label" >Display intestine wall layers</label>
 						<br/></p>
 						<label for="sliders">Display:</label>
 						<select id="sliders" name="sliders">
-						   <option value="0">Colon & Ileum</option>
+						   <option value="0">Colon & Small Intestine</option>
 						   <option value="1">Colon</option>
-						   <option value="2">Colon & Ileum overlapping</option>
+						   <option value="2">Small Intestine</option>
+						   <option value="3">Colon & Small Intestine overlapping</option>
 						</select>
+						<br/></p>
+						<div id='positions'>
+							<span class="label">Positions:</span> 
+	 						<input type="radio" id="positions-absolute" name="positions" value="0" tabindex="-1">
+							<label for="positions-absolute">Absolute</label>
+							<input type="radio" id="posiitions-relative" name="positions" value="1" tabindex="-1">
+							<label for="positions-relative">Relative</label>
+							<p/>
+						</div>
+						
+					 	<input type="checkbox" id="zoom_visible" name="zoom_visible" title="Check to display the zoom panel when starting the viewer" tabindex="-1">
+						<label id="lr-label" for="lr" class="label" >Show the zoom panel at start</label>
 						`; 		
 			
 		super('settings-dialog', 'Change settings', content, container);
@@ -523,24 +917,38 @@ class SettingsDialog extends PopupDialog {
 		this.lr = $("input[name='lr']")[0];
 		this.layers = $("input[name='layers']")[0];// $("#layers")[0];
 		this.slidersDisplay = $("#sliders")[0];
+		this.positions = $("input[name='positions']")
+		this.zoomVisible = $("input[name='zoom_visible']")[0];
+		
 	}
 	
-	open(theme, lr, showLayers, displayMode, saveSettings, target=null) {
+	open(status, saveSettings, target=null) {
 		if(target) {
 			let targetBox = target.getBoundingClientRect();
 			this.dialog.dialog({position: {of: window, my: 'right top', at: `left+${targetBox.left + 1} top+${targetBox.bottom + 1}`, collision: 'fit fit'}});
 		}
 		this.dialog.tabindex="-1"
-		this.theme.value = theme;
-		this.lr.checked = lr;
-		this.layers.checked = showLayers;
-		this.slidersDisplay.value = displayMode;
+		this.theme.value = status.themeIndex;
+		this.lr.checked = status.lr;
+		this.layers.checked = status.showLayers;
+		this.slidersDisplay.value = status.displayMode;
+		this.positions[status.positions? 0 : 1].checked = true;  // value: '0' for absolute and '1' fo relative 
+		this.zoomVisible.checked = status.zoomVisible;
 		this.saveSettings = saveSettings;	
 		this.dialog.dialog("open");
 	}
 	
 	save() {
-		this.saveSettings(Number(this.theme.value), this.lr.checked, this.layers.checked, Number(this.slidersDisplay.value));		
+		
+		let status = {	themeIndex:		Number(this.theme.value), 
+						lr : 			this.lr.checked, 
+						layersVisible:	this.layers.checked,
+						displayMode:  	Number(this.slidersDisplay.value),
+						positions:		this.positions[0].checked,
+						zoomVisible:	this.zoomVisible.checked
+					}
+				
+		this.saveSettings(status);		
 		this.dialog.dialog( "close" );
 	}
 

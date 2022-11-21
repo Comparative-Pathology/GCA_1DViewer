@@ -17,9 +17,7 @@ import { PopupDialogs } from './PopupDialogs.js';
 
 export { SliderPanel };
 
-const MinZoomLength = 1;
-const MaxZoomLength = 1000;
-
+const MinZoomLength = 1; 
 /** @class SliderPanel representing slider panel for GCA 1D viewer. It used slider vclass to display individual 
  * slider in multi branch gut models
  */
@@ -127,10 +125,10 @@ class SliderPanel extends DisplayPanel{
 		if(isNaN(width)){ // invalid input
 			return;
 		}
-		width = Math.round(width);  
+		width = Math.round(width);
+ 
 		let maxZoomLength = this.sliders[this.currentSlider].gutModel.getLength()
 		if(width < MinZoomLength || width > maxZoomLength) { // invalid input 
-//		if(width < MinZoomLength || width > MaxZoomLength) { // invalid input 
 			return;
 		}
 		let w = this.sliders[this.currentSlider].roiWidth;
@@ -148,13 +146,18 @@ class SliderPanel extends DisplayPanel{
 		roi.branchIndex = this.currentSlider;
 		
 		let branches = []
-		branches[0] = {name: 'Colon', length: this.sliders[0].gutModel.getLength()}
+		branches[0] = {name: 'Colon', length: this.sliders[0].gutModel.getLength(), model: this.sliders[0].gutModel}
 		if(this.mode == 'full') {
-			branches[1] = {name: 'Ileum', length: this.sliders[1].gutModel.getLength()}
+			branches[1] = {name: 'Ileum', length: this.sliders[1].gutModel.getLength(), model: this.sliders[1].gutModel}
 		}
 //		PopupDialogs.roiDialog.open(roi, this.setRoi.bind(this), branches, MinZoomLength, MaxZoomLength);
-		let maxZoomLength = this.sliders[this.currentSlider].gutModel.getLength()
-		PopupDialogs.roiDialog.open(roi, this.setRoi.bind(this), branches, MinZoomLength, maxZoomLength);
+//		let maxZoomLength = this.sliders[this.currentSlider].gutModel.getLength()
+		if(this.absolutePositions) {
+			PopupDialogs.roiDialog.open(roi, this.setRoi.bind(this), branches, this.absolutePositions);
+		}
+		else {
+			PopupDialogs.roiDialogRelative.open(roi, this.setRoi.bind(this), branches, this.absolutePositions);
+		}
 
 	}
 
@@ -164,18 +167,11 @@ class SliderPanel extends DisplayPanel{
 			this.setCurrentSlider(roi.branchIndex)
 //			this.parent.changeZoomedViewGutModel(this.sliders[sliderIndex].gutModel);
 		}
+/*		
 		let newRoi = this.getRoiExtents();
 //		newRoi.branchIndex = (this.mode == 'full')? this.currentSlider : -1;
 		newRoi.branchIndex = this.currentSlider;
 		PopupDialogs.roiDialog.refresh(newRoi)
-/*		
-		let w = this.sliders[this.currentSlider].roiWidth;
-		this.sliders[this.currentSlider].updateRoiWidth(width);
-		let newWidth = this.sliders[this.currentSlider].roiWidth;
-//		src.value = newWidth
-		if (w != newWidth) {
-			this.sliders[this.currentSlider].dispatchRoiChange();
-		}
 */		
 	}
 
@@ -1201,7 +1197,14 @@ class Slider {
 		let pos = Math.round(this.transform.getPos(x));
 		pos = this.transform.clampPos(pos);
 		
-		let posText = this.absolutePositions? pos+'' : this.getRelativePositionText(pos);
+		let posText
+		if(this.absolutePositions) {
+			posText = pos+'';
+		}
+		else {
+			let relPos = this.gutModel.getRelativePosition(pos, this.currentBranch);
+			posText = relPos.region + ':' + relPos.pos + '%';
+		}
 		cursor.text = cursor.text.text(posText);
 
 		cursor.show();
@@ -1225,16 +1228,6 @@ class Slider {
 		} 
 		let txtHeight = this.cursor.text.bbox().height;
 		cursor.y(y - txtHeight - 4);
-	}
-
-	getRelativePositionText(pos){
-		let regionIndex = this.gutModel.findRegionIndex(pos, this.currentBranch);
-		let region = this.gutModel.regions[regionIndex];
-		let len = this.gutModel.getLength();
-		let posPcnt = Math.round(pos / len * 100);
-		let posRelative = pos - region.startPos; 
-		let posRelativePcnt = Math.round(posRelative / region.size * 100);
-		return region.name + ':' + posRelativePcnt + '%'
 	}
 
 	handleMouseout(e) {
