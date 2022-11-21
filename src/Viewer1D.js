@@ -520,8 +520,9 @@ class Viewer1D extends EventTarget {
 		this.zoomPanel.setGutModel(gutModel);
 		if (gutModel.branch != null)
 			this.zoomPanel.setCurrentBranch(gutModel.branch);
-/*			
 		this.annotationPanel.setGutModel(gutModel);
+
+/*			
 		this.zoomPanel.updateRoi(this.sliderPanel.getRoiExtents());
 		this.annotationPanel.updateRoi(this.sliderPanel.getRoiExtents());
 */		
