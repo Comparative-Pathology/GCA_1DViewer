@@ -1093,7 +1093,17 @@ class Slider {
 		this.updateRoiPos(pos);
 	}
 
+
+
 	handleRoiClick(e) {
+		Utility.handleClicks(this.handleRoiSingleClick.bind(this), this.handleRoiDblClick.bind(this), e);
+	}
+
+	handleRoiDblClick(e) {
+		this.parent.openRoiDialog();
+	}
+
+	handleRoiSingleClick(e) {
 		e.preventDefault();
 		let x = this.transform.getX(this.roiPos, this.roiWidth);
 		x += Utility.relativePos(e, true).x;
@@ -1102,6 +1112,17 @@ class Slider {
 		this.dispatchRoiChange();
 	}
 
+
+/*
+	handleRoiClick(e) {
+		e.preventDefault();
+		let x = this.transform.getX(this.roiPos, this.roiWidth);
+		x += Utility.relativePos(e, true).x;
+		let pos = Math.round(this.transform.getPos(x))
+		this.setCursorPos(pos);
+		this.dispatchRoiChange();
+	}
+*/
 	handleRoiDrag(e) {
 		e.preventDefault();
 		const { handler, box } = e.detail;
