@@ -22,7 +22,7 @@ class DemoViewer extends EventTarget {
 		this.fullView1D = true;
 // API test
 		// Collapse zoom panel
-		this.viewer1D.setFullView(false);	// collapse the zoom panel (zoom panel is expanded by default) 
+//		this.viewer1D.setFullView(false);	// collapse the zoom panel (zoom panel is expanded by default) 
 		
 		// Set ROI and cursor position
 		let roi = {position:400, branch:0, width:300};
@@ -49,8 +49,8 @@ class DemoViewer extends EventTarget {
 
 	handleToggleFullView1D(e) {
 		// Add your code in response to the expand/collapse zoom panel event
-		this.container.style.height = this.fullView1D? "180px" : "400px" 
 		this.fullView1D = !this.fullView1D;
+		this.container.style.height = this.fullView1D? "400px" : "180px"; 
 	}
 
 	handleRoiChange(e) {
