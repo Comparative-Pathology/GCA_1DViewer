@@ -24,6 +24,7 @@ class PopupDialogs {
 		this.regionPopup = new RegionPopup(this.container);
 		this.modelPopup = new ModelPopup(this.container);
 		this.messagePopup = new MessagePopup(this.container);
+		this.helpPopup = new HelpPopup(this.container, './help/help.md');
 //		this.load(container, 'MarkerDialog.html');
 	}
 	
@@ -61,6 +62,10 @@ class PopupDialogs {
 	
 	static get messagePopup() {
 		return this.instance.messagePopup;
+	}
+	
+	static get helpPopup() {
+		return this.instance.helpPopup;
 	}
 }
 
@@ -999,5 +1004,183 @@ class RegionPopup extends InfoPopup {
 		this.uberon.href = getUberonLink(region.uberonId) 
 	}
 }
+
+
+/**************************************************************************
+*/
+class HelpPopup extends PopupDialog {
+	/**
+	 * Creates an instance of Region Popup.  
+	 *
+	 * @constructor
+	 */
+	constructor(container, helpFile) {
+		
+		let css = `<style> 
+
+					.help-wrapper {
+						margin: 0 auto;
+						display: grid;
+						padding: 10px;
+						grid-template-columns: 200px auto;
+						grid-gap: 10px;
+						align-items: flex-start;
+					}
+					
+					.sticky {
+						position: -webkit-sticky; /* Safari */
+						position: sticky;
+						top: 0;
+					}
+					
+					.pl-1 {
+						padding-left: 1em;
+					}
+					.pl-2 {
+						padding-left: 2em;
+					}
+					.nobullet {
+						list-style-type: none;
+					}
+
+					</style>
+					`
+		let content = `<div id="help-container" class="help-container"><div id="help-content-wrapper" class="help-wrapper">
+							<aside id="help-titles" class="sticky"></aside>
+							<div id="help-content" class="content mt-32" ></div> </div>`;
+							
+		content = css + content
+		super('help-popup', 'Viewer Help', content, container);
+		fetch(helpFile)    
+		    .then(response => response.blob()) 
+    		.then(blob => blob.text())         
+    		.then(markdown => {                
+//			this.rawContent = marked.parse(markdown, { sanitize: true }); // sanetize helpContent before using
+			this.rawContent = marked.parse(markdown); // sanetize helpContent before using
+	    });		
+
+		this.configDialog({	autoOpen: false, 
+							hide: "fade",
+							show : "blind",
+							width: "50%",
+							height: 400,
+							buttons: {
+								Close: this.close.bind(this)
+							},
+							resize: this.setPopupPosition.bind(this)
+						  }, false);	// stay on when mose leaves the dialog	
+	}
+	
+	init() {
+		this.helpContainer = $(`#help-container`)[0];
+		this.helpContent = null;
+		this.defaultHelpContent = null;
+	}
+
+	open(target=null, helpContent=this.defaultHelpContent) {
+		this.setPopupPosition()
+		if(this.helpContent == null || helpContent == undefined || this.helpContent != helpContent) {
+			let helpPreprocessor = new HelpPreprocessor(this.rawContent, $(`#help-titles`)[0], $(`#help-content`)[0])
+			this.defaultHelpContent = helpPreprocessor.getHelpContent();
+			this.helpContent = helpContent;
+		}
+		
+		this.dialog.dialog("open");
+	}
+	
+	setPopupPosition() {
+		this.dialog.dialog({position: {of: window, my: 'left top', at: 'left+10% top+10%', collision: 'fit fit'}});
+	}	
+		
+	close() {
+		this.dialog.dialog( "close" );
+	}
+
+}
+/************************************************************************
+ */
+class HelpPreprocessor {
+	constructor(content, titlesContainer, contentContainer) {
+		this.titles = titlesContainer;
+		this.contentContainer = contentContainer;
+		this.contentContainer.innerHTML = content;
+		this.processedContent = null
+	}
+
+	getHelpContent() {
+		if(this.processedContent == null) {
+			let headings = [...this.contentContainer.querySelectorAll('h1, h2, h3')]
+			this.titles.innerHTML = this.generateTitlesList(headings);
+			let headingsLinks = [...this.titles.querySelectorAll('a')]
+			let observer = this.createObserver(headingsLinks)
+			headings.map(heading => observer.observe(heading))
+
+/*			
+			// Part 4
+			let motionQuery = window.matchMedia('(prefers-reduced-motion)')
+			headingsLinks.map(link => {
+						link.addEventListener("click", (evt) => this.handleLinkClick(evt, headings, motionQuery) )
+		    	     })
+*/			
+		}
+		
+		return this.processedContent
+	}
+	
+	generateTitlesList(headings) {
+		let parsedHeadings = headings.map(heading => {
+			return {
+				title: heading.innerText,
+				depth: heading.nodeName.replace(/\D/g,''),
+				id: heading.getAttribute('id')
+			}
+		})
+//  		console.log(parsedHeadings)
+		let headingsMarkup = parsedHeadings.map(h => `
+			<li class="nobullet ${h.depth > 2 ? 'pl-'+String(h.depth-2) : ''}">
+				<a href="#${h.id}">${h.title}</a>
+			</li>`)
+  		return `<ul style="padding-left:0">${headingsMarkup.join('')}</ul>`
+	}
+
+	updateLinks(visibleId, $links) {
+		$links.map(link => {
+			let href = link.getAttribute('href')
+			link.classList.remove('is-active')
+			if(href === visibleId) link.classList.add('is-active')
+		})
+	}
+
+	handleObserver(entries, observer, $links) {
+		entries.forEach((entry)=> {
+			let { target, isIntersecting, intersectionRatio } = entry
+			if (isIntersecting && intersectionRatio >= 1) {
+				let visibleId = `#${target.getAttribute('id')}`
+				this.updateLinks(visibleId, $links)
+			}
+		})
+	}
+
+	createObserver($links) {
+		let options = { rootMargin: "0px 0px -200px 0px", threshold: 1	}
+		let callback = (e, o) => this.handleObserver(e, o, $links)
+		return new IntersectionObserver(callback, options)
+	}
+
+	handleLinkClick(evt, headings, motionQuery) {
+		evt.preventDefault()
+		let id = evt.target.getAttribute("href").replace('#', '')
+		let section = headings.find(heading => heading.getAttribute('id') === id)
+		section.setAttribute('tabindex', -1)
+		section.focus()
+		window.scroll({
+			behavior: motionQuery.matches ? 'instant' : 'smooth',
+			top: section.offsetTop - 100
+		})
+	}
+
+}
+
+
 	
 
