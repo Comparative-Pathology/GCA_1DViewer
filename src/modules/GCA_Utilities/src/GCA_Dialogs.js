@@ -51,7 +51,8 @@ class PopupDialog {
 		this.dialog.on("dialogopen", this.setClickHandler.bind(this));	
 		if (autoclose) { 
 	//		dialog.mouseleave(this.close.bind(this))
-			parent = this.dialog[0].parentNode || this.dialog[0].parentElement;
+//			let parent = this.dialog[0].parentNode || this.dialog[0].parentElement;
+			let parent = this.dialog[0];
 			if (Number.isInteger(autoclose)) {
 				parent.addEventListener('mouseleave', this.close.bind(this, autoclose));
 			}
