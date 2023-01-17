@@ -10,22 +10,6 @@
  * The viewer is developed based on SVG technology and svgjs as the javascript library. 
  */
 
-//import '../external/@svgdotjs/svg.draggable.js/src/svg.draggable.js';
-//import '../external/svg.draggable.min.js';
-/*
-import { TitlePanel } from './core/TitlePanel.js';
-import { SliderPanel } from './core/SliderPanel.js';
-import { ZoomPanel } from './core/ZoomPanel.js';
-import { AnnotationPanel } from './core/AnnotationPanel.js';
-import { UberonPanel } from './core/UberonPanel.js';
-import { Gut, Marker } from './core/GCA_1D_Model.js';
-import { Theme } from './core/Theme.js';
-import { UtilityViewer1D } from './core/Utility.js';
-import { PopupDialogs } from './PopupDialogs.js';
-import { TabbedPanel } from './core/TabbedPanel.js';
-import { GutAnatomy } from './core/Anatomy.js';
-*/
-
 import * as Core from './modules/core.js';
 import * as Util from './modules/GCA_Utilities.js';
 
@@ -77,7 +61,6 @@ class Viewer1D extends EventTarget {
 		this.zoomPanelContainer = Util.Utility.addElement(this.container, 'div', 'zoom-panel', 'panel-1D');		
 		this.textPanelContainer = Util.Utility.addElement(this.container, 'div', 'text-panel', 'panel-1D');
 
-//		let tabNames = ['Annotations', 'Uberon', 'tab-3'];
 		let tabNames = ['Anatomy', 'Uberon'];
 		this.textTabbedPanel = new Core.TabbedPanel(this.textPanelContainer, 'text-panel', tabNames);
 		this.hasDisplayed = false;
@@ -506,10 +489,14 @@ class Viewer1D extends EventTarget {
 		c -= r + gap;
 		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'Settings', 0.88).on('click', this.openSettingsDialog.bind(this));
 
+		img = 'help.svg';
+		c -= r + gap;
+		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'Help').on('click', this.showHelp.bind(this));
+
 /*
 		img = 'colon.svg';
 		c -= r + gap;
-		Core.UtilityViewer1D.showIcon(this.ctx, img, d, c, cy, 'save markers').on('click', this.saveMarkers.bind(this));
+		Core.UtilityViewer1D.showIcon(ctx, img, d, c, cy, 'save markers').on('click', this.saveMarkers.bind(this));
 */		
 	}
 	
@@ -682,6 +669,10 @@ class Viewer1D extends EventTarget {
 		this.gutModel.clearMarkers();
 		this.zoomPanel.redraw();
 //		return markers? JSON.parse(markers) : null;
+	}
+
+	showHelp(e) {
+		Core.PopupDialogs.helpPopup.open(e.target); // '<label>Help Content</label>');
 	}
 
 	openSettingsDialog(e){
