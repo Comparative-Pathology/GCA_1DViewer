@@ -1,4 +1,4 @@
-# Edinburg Gut Cell Atlas 1D Model Viewer
+# Edinburgh Gut Cell Atlas 1D Model Viewer
 
 The Edinburgh Gut Cell Atlas 1D viewer is a web-based application to view and browse an abstract model of the human gut. 
 
@@ -85,7 +85,7 @@ The 1D viewer API provides several methods to programmatically change the appear
 		
 ```javascript
 	let viewer = new Viewer1D(container);		// Create an instance of the 1D viewer 
-	viewer.loadModel('./models/EdinGCA_1D_00010_1_15.json', modelReadyCallback())  // Load and display a 1D model and set a callback for any required post load processing  
+	viewer.loadModel('./models/EdinGCA_1D_00010_1_15.json', modelReadyCallback())  // Load and display a 1D model and set a callback for any required post-load processing  
 
 	modelReadyCallback() {
 		// Collapse zoom panel
@@ -121,7 +121,7 @@ class DemoViewer extends EventTarget {
 	constructor (container) {
 		super();
 		this.viewer1D = new Viewer1D(container);		// Create an instance of the 1D viewer 
-		this.viewer1D.addRoiChangeListener(this, this.handleRoiChange);			// (optional) adding a handler for region of interest change events
+		this.viewer1D.addRoiChangeListener(this, this.handleRoiChange);			// (optional) adding a handler for the region of interest change events
 		this.viewer1D.addModelChangeListener(this, this.handleModelChange);     // (optional) adding a handler for model change events 
 		this.viewer1D.addFullviewToggleListener(this, this.handleToggleFullView1D);   // (optional) adding a handler for handling zoom panel expand/collapse events   
 		this.viewer1D.loadModel('./models/EdinGCA_1D_00010_1_15.json', this.handleModelReady.bind(this))  // Load and display a 1D model and set a callback for any required post load processing  
