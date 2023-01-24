@@ -7,7 +7,8 @@
 	line-height: 1.65;
 	font-size: 12px;			
 	opacity: 1;
-   	background: white !important;			
+	background: white !important;
+	overscroll-behavior-y: contain;			
 }
 
 .help-container p {

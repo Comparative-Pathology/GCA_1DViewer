@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="./help/help.css"></link>
-
 # Edinburgh Gut Cell Atlas 1D Model Viewer
 The Edinburgh Gut Cell Atlas 1D viewer is a web-based application to view and browse an abstract 1D model of the human gut. It provides an interactive tool to display locations and map data in the context of our abstract 1D models. The viewer accepts the gut 1D model in JSON format as defined by the Edinburgh Gut Cell Atlas project. Currently, it includes an abstract 1D model.
 
@@ -21,7 +19,7 @@ with a vertical line in the display associated with a title and relative positio
 of the model. A mouse over the titles of a region or landmark will show a brief description; a click on
  a region’s title will display further details about the region in a pop-up window.
 
-<img src="./help/images/fig1.png" width="95%" alt="1D Viewer" title="The 1D Viewer has three panels: slider panel, zoom panel, and annotation panel"/>
+<img src="src/help/images/fig1.png" width="95%" alt="1D Viewer" title="The 1D Viewer has three panels: slider panel, zoom panel, and annotation panel"/>
 
 
 <br><br><[back to the top]><br><br><br>
@@ -84,7 +82,7 @@ You can adjust the width of the current region of interest by using the mouse wh
 
 *The absolute mode​*
 
-<img src="./help/images/fig2-1.png" width="40%" alt="ROI setting absolute mode" title=" Dialog to set ROI when relative display mode s selected"/>
+<img src="src/help/images/fig2-1.png" width="40%" alt="ROI setting absolute mode" title=" Dialog to set ROI when relative display mode s selected"/>
 
 In the absolute mode when changing ROI extent the middle position of the ROI is fixed by default. You can
  change the width of the ROI using the slider control on top o the input box beside it. Changing the width
@@ -94,7 +92,7 @@ In the absolute mode when changing ROI extent the middle position of the ROI is 
 
 *The relative Mode​*
 
-<img src="./help/images/fig2-2.png" width="40%" alt="ROI setting relative mode" title=" Dialog to set ROI when relative display mode s selected"/>
+<img src="src/help/images/fig2-2.png" width="40%" alt="ROI setting relative mode" title=" Dialog to set ROI when relative display mode s selected"/>
 
 In the relative mode ROI setting dialogue, there are three controls allowing to set the extent of the ROI and the position of the cursor inside the ROI. The Distal and Proximal controls are to set the distal position (closer to the anus) and the proximal position (further away from the anus) of the ROI. These positions can be set by either a slider control which moves the position across the whole track or by selecting a region from a drop-down list and setting a percentage distance from the start of the selected region. The cursor position can be set in the same manner within the boundaries of the ROI.
 
@@ -106,7 +104,7 @@ In the relative mode ROI setting dialogue, there are three controls allowing to 
 
 Clicking on the wheel icon on the top right of the panel will bring up a dialog pop-up as shown below where you can adjust available settings for the viewer. Some of the properties that you can change using this interface include the display theme, display of the tracks in the slider panel, display of the intestinal wall layers in the zoom view, and display of positions in the absolute or relative format in the slider panel and zoom view. The setting will be stored on your local browser storage hence these will be remembered when you use the application again on the same machine and browser. will remain on the  
 
-<img src="./help/images/fig3.png" width="40%" alt="Configuring Viewer" title="Dialog to set the user preferences"/>
+<img src="src/help/images/fig3.png" width="40%" alt="Configuring Viewer" title="Dialog to set the user preferences"/>
 
 <br><br><[back to the top]><br><br><br>
 
