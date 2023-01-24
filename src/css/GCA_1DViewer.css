@@ -1,6 +1,11 @@
 /*!
  * Style Sheet for Gut Cell Atlas Viewer 
  */
+
+html {
+  margin: 0;
+  overscroll-behavior: none;
+}
  
 
 /*************** Viewer 1D ***************/
