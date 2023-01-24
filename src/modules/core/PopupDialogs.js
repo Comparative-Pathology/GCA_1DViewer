@@ -24,7 +24,7 @@ class PopupDialogs {
 		this.regionPopup = new RegionPopup(this.container);
 		this.modelPopup = new ModelPopup(this.container);
 		this.messagePopup = new MessagePopup(this.container);
-		this.helpPopup = new HelpPopup(this.container, './help/help.md');
+		this.helpPopup = new HelpPopup(this.container, './src/help/help.md');
 //		this.load(container, 'MarkerDialog.html');
 	}
 	
@@ -1051,14 +1051,8 @@ class HelpPopup extends PopupDialog {
 							
 		content = css + content
 		super('help-popup', 'Viewer Help', content, container);
-		fetch(helpFile)    
-		    .then(response => response.blob()) 
-    		.then(blob => blob.text())         
-    		.then(markdown => {                
-//			this.rawContent = marked.parse(markdown, { sanitize: true }); // sanetize helpContent before using
-			this.rawContent = marked.parse(markdown); // sanetize helpContent before using
-	    });		
-
+		
+		this.loadHelpContent(helpFile)
 		this.configDialog({	autoOpen: false, 
 							hide: "fade",
 							show : "blind",
@@ -1069,6 +1063,23 @@ class HelpPopup extends PopupDialog {
 							},
 							resize: this.setPopupPosition.bind(this)
 						  }, false);	// stay on when mose leaves the dialog	
+	}
+	
+	loadHelpContent(helpFile) {
+        if (typeof rawHelpContent !== 'undefined') {
+			this.rawContent = marked.parse(rawHelpContent); // sanetize helpContent before using
+            return Promise.resolve();
+        }
+        else {
+			return fetch(helpFile)    
+					    .then(response => response.blob()) 
+			    		.then(blob => blob.text())         
+		    			.then(markdown => {                
+				//			this.rawContent = marked.parse(markdown, { sanitize: true }); // sanetize helpContent before using
+								this.rawContent = marked.parse(markdown); // sanetize helpContent before using
+						})
+		    		    .catch(err => console.log(`Error laoding help content. ${err}`));
+		}
 	}
 	
 	init() {
@@ -1109,24 +1120,36 @@ class HelpPreprocessor {
 
 	getHelpContent() {
 		if(this.processedContent == null) {
-			let headings = [...this.contentContainer.querySelectorAll('h1, h2, h3')]
+			let headings = [...this.contentContainer.querySelectorAll('h1, h2, h3')];
 			this.titles.innerHTML = this.generateTitlesList(headings);
-			let headingsLinks = [...this.titles.querySelectorAll('a')]
-			let observer = this.createObserver(headingsLinks)
-			headings.map(heading => observer.observe(heading))
-
+			let headingsLinks = [...this.titles.querySelectorAll('a')];
+			let observer = this.createObserver(headingsLinks);
+			headings.map(heading => observer.observe(heading));
 /*			
 			// Part 4
 			let motionQuery = window.matchMedia('(prefers-reduced-motion)')
 			headingsLinks.map(link => {
 						link.addEventListener("click", (evt) => this.handleLinkClick(evt, headings, motionQuery) )
 		    	     })
-*/			
+*/	
+			// adjust imeges sources
+			let images =  [...this.contentContainer.querySelectorAll('img')];
+
+			images.map(image => { if (typeof helpImages !== 'undefined') {
+									  let name = image.src.substr(image.src.lastIndexOf('/')+1)
+								      image.src = helpImages[name]['default']; 
+								  }
+								  else {
+									  if(image.src.lastIndexOf('/') < 0) { 
+										  image.src = './src/help/images/' + image.src;
+									  } 
+								  }
+								} );
 		}
 		
 		return this.processedContent
 	}
-	
+
 	generateTitlesList(headings) {
 		let parsedHeadings = headings.map(heading => {
 			return {
@@ -1138,7 +1161,7 @@ class HelpPreprocessor {
 //  		console.log(parsedHeadings)
 		let headingsMarkup = parsedHeadings.map(h => `
 			<li class="nobullet ${h.depth > 2 ? 'pl-'+String(h.depth-2) : ''}">
-				<a href="#${h.id}">${h.title}</a>
+				<a href="#${h.id}" >${h.title}</a>
 			</li>`)
   		return `<ul style="padding-left:0">${headingsMarkup.join('')}</ul>`
 	}
