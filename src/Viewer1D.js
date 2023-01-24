@@ -25,6 +25,7 @@ if (typeof cssImported === 'undefined') {
     Util.Utility.addStylesheet(currentPath + '/src/modules/GCA_Utilities/external/jquery-ui/jquery-ui.min.css');
     Util.Utility.addStylesheet(currentPath + '/src/modules/GCA_Utilities/src/GCA_Utilities.css');
     Util.Utility.addStylesheet(currentPath + '/src/css/GCA_1DViewer.css'); 
+    Util.Utility.addStylesheet(currentPath + '/src/help/help.css'); 
 }
 
 /** @class Viewer1D representing GCA model 1D viewer. */
