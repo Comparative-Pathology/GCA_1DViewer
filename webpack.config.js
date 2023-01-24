@@ -39,6 +39,26 @@ module.exports = {
           'css-loader'
         ]
       },
+ 
+      {
+        test: /\.md$/,
+        use: 'raw-loader'
+      },
+
+      {
+        test: /\.(png|jpe?g)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              name: 'help/images/[name].[ext]',
+            }
+          }
+        ]
+      },
+
+
+   
     ]      
   },
 
