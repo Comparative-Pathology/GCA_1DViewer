@@ -53,7 +53,7 @@ class SliderPanel extends DisplayPanel{
 		if (this.mode=='main' || this.mode=='ext' || ileumModel == null || this.mode == 'overlap') {
 //			let model = (this.mode=='overlap')? this.gutModel : mainModel;
 			let model = (this.mode=='overlap')? this.gutModel : (this.mode=='main')? mainModel : ileumModel;
-			this.sliders[0] = new Slider(0, this, model, width, this.lr? 0 : -offset, this.ctx.height());
+			this.sliders[0] = new Slider(0, this, model, this.absolutePositions, width, this.lr? 0 : -offset, this.ctx.height());
 			this.currentSlider = 0;
 		}
 		else {
