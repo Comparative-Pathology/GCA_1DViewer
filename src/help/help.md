@@ -69,7 +69,22 @@ The items that fall inside the ROI are displayed with a boldface font. This info
   ids and a brief description. The list serves as a handy reference to Uberon ids where the terms
    are linked to the OLS web pages if further detail is needed.
    
+The "Cell Type" tab contain list of cell types associated with human Gut. The list of cell type contains 
+all the cell types associated with the currently selected region of interest ROI. Each row in the list 
+contains one cell type and its associated intestinal layer and region. The list is sorted in ascending 
+order based of the cell types regions. Clicking on the region column header will change the sort order 
+from ascending to descending. clicking on the layer column header will sort the list of cell types in order
+of layer and clicking on the cell type column will sort the list in order of the cell type names. Clicking on 
+a cell type name will link to OLS cell type ontology on a new window for further information about the 
+clicked cell type.
+It is possible to filter the list of cell types by selecting the layers of interest. This can be done by 
+moving the mouse cursor to the left side of the Cell Type panel. This opens a popup window that allows to 
+select the desired layer to be included in the cell type list as shown in the figure below. 
+
+<img src="src/help/images/CellTypeTab.png" width="40%" alt="Selecting Layers for List of Cell Types" title="Selecting Layers for List of Cell Types"/>
+
 <br><br><[back to the top]><br><br><br>
+
 
 ---
 

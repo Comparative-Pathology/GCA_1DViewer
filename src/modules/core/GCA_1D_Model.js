@@ -73,7 +73,7 @@ class Gut {
 			let pos = item.position? item.position[0] : null;
 			let start = (item.start_position == undefined || item.start_position == null)? pos : item.start_position;
 			let end = (item.end_position == undefined || item.end_position == null)? pos : item.end_position;;
-			let region = new GutRegion(id, name, description, start, end, color, externalId);
+			let region = new GutRegion(id, name, description, start, end, color, externalId, anatomy);
 			region.setBranch(branch);					
 			
 			// add intestine wall layers that exist in this region
@@ -447,8 +447,9 @@ class GutRegion {
 	 * @param {end} end end posion of the region from the beginning of gut model
 	 * @param {string} color color associated to the region in hex string format
 	 * @param {string} uberonid represents regions uberon id if it exists
+	 * @param {Anatomy} anatomy anatomy object as defined by GCA 
 	 */
-	constructor(id, name, description, start, end, color, uberonId = '') {
+	constructor(id, name, description, start, end, color, uberonId = '', anatomy = null) {
 		this.id = id;
 		this.uberonId = uberonId;
 		this.name = name;
@@ -457,6 +458,10 @@ class GutRegion {
 		this.endPos = end;
 		this.color = color;
 		this.branch = 0;
+		if (! anatomy) {
+			anatomy = GutAnatomy.findAnatomyByName(name);
+		}
+		this.anatomy = Array.isArray(anatomy)? anatomy : [anatomy];	 
 		this.ontologies = null;
 		this.subRegions = null;
 		this.associatedData = null;
@@ -504,7 +509,7 @@ class Landmark extends GutRegion{
 	 * @param {string} uberon represents landmark's uberon id if it exists
 	 */
 	constructor(id, title, description, pos, start, end, color, anatomy, branch=0, uberon='') {
-		super(id, description, description, start, end, color, uberon);
+		super(id, description, description, start, end, color, uberon, anatomy);
 		this.title = title;
 		this.position = pos;
 		this.startPos = start? start : pos;

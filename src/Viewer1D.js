@@ -62,7 +62,7 @@ class Viewer1D extends EventTarget {
 		this.zoomPanelContainer = Util.Utility.addElement(this.container, 'div', 'zoom-panel', 'panel-1D');		
 		this.textPanelContainer = Util.Utility.addElement(this.container, 'div', 'text-panel', 'panel-1D');
 
-		let tabNames = ['Anatomy', 'Uberon'];
+		let tabNames = ['Anatomy', 'Uberon', 'Cell Type'];
 		this.textTabbedPanel = new Core.TabbedPanel(this.textPanelContainer, 'text-panel', tabNames);
 		this.hasDisplayed = false;
 		this.listeners = {'1D_roi_changed': [], '1D_model_changed': [], '1D_toggle_full_view' : []};
@@ -77,7 +77,11 @@ class Viewer1D extends EventTarget {
 	 */
 
  	loadModel(modelFile, modelReadyCallback) {
-		if (!this.gutAnatomy) {
+		if(!this.gutCellTypes) {
+			this.gutCellTypes = new Core.GutCellTypes();
+			this.gutCellTypes.loadJsonCellTypes(null) // or pass an cell types file url
+		}	
+		if(!this.gutAnatomy) {
 			this.gutAnatomy = new Core.GutAnatomy();
 			this.gutAnatomy.loadJsonAnatomy(null) // or pass an anatomy file url
 			.then( () => this.loadModelFile(modelFile))
@@ -296,10 +300,16 @@ class Viewer1D extends EventTarget {
 		this.uberonPanel = new Core.UberonPanel(this.textTabbedPanel.tabContainers[1], this);
 		this.textTabbedPanel.setTabListener(1, this.uberonPanel, this.uberonPanel.handleTabEvents);
 
+		this.cellTypePanel = new Core.CellTypePanel(this.textTabbedPanel.tabContainers[2], this, this.sliderPanel.gutModel, this.absolutePositions, Core.Theme.currentTheme.annotationBkgColor, null);;
+		this.textTabbedPanel.setTabListener(2, this.cellTypePanel, this.cellTypePanel.handleTabEvents);
+
 		this.addEventListener('roi_change', this.handleRoiChange.bind(this)); //fired by Slider panel
 		this.addEventListener('region_dragged', this.handleZoomScroll.bind(this));	//fired by Zoom panel
 		this.addEventListener('zoom_change_request', this.handleZoomChange.bind(this));
 		this.addEventListener('zoom_cursor_change', this.handleZoomCursorChange.bind(this)); //fired by zoom panel
+		this.addEventListener('celltype_Tab_Activated', this.handleCelltypeTabActivated.bind(this)); //fired by clicking on the cell type tab
+		this.addEventListener('celltype_layers_change', this.handleCelltypeLayersChange.bind(this)); //fired by annotation panel panel-celltype tab
+		this.addEventListener('zoom_layers_selection_change', this.cellTypePanel.handleUpdateSelectedLayers.bind(this.cellTypePanel)); //fired by annotation panel panel-celltype tab
 	}
 
 
@@ -333,6 +343,7 @@ class Viewer1D extends EventTarget {
 
 		this.annotationPanel.updateRoi(this.sliderPanel.getRoiExtents());
 		this.uberonPanel.draw();
+		this.cellTypePanel.updateRoi(this.sliderPanel.getRoiExtents());
 	}
 	
 
@@ -402,6 +413,8 @@ class Viewer1D extends EventTarget {
 
 		this.annotationPanel.setContainerSize(this.textTabbedPanel.panelWidth, this.textTabbedPanel.panelHeight);
 		this.uberonPanel.setContainerSize(this.textTabbedPanel.panelWidth, this.textTabbedPanel.panelHeight);
+		this.cellTypePanel.setContainerSize(this.textTabbedPanel.panelWidth, this.textTabbedPanel.panelHeight);
+
 	}
 
 	toggleNoTitle() {
@@ -443,6 +456,7 @@ class Viewer1D extends EventTarget {
 		this.zoomPanel.clear();
 		this.annotationPanel.clear();
 		this.uberonPanel.clear();
+		this.cellTypePanel.clear();
 	}
 	
 	redraw() {	
@@ -509,10 +523,12 @@ class Viewer1D extends EventTarget {
 		if (gutModel.branch != null)
 			this.zoomPanel.setCurrentBranch(gutModel.branch);
 		this.annotationPanel.setGutModel(gutModel);
+		this.cellTypePanel.setGutModel(gutModel);
 
 /*			
 		this.zoomPanel.updateRoi(this.sliderPanel.getRoiExtents());
 		this.annotationPanel.updateRoi(this.sliderPanel.getRoiExtents());
+		this.cellTypePanel.updateRoi(this.sliderPanel.getRoiExtents());
 */		
 	}
 
@@ -565,6 +581,7 @@ class Viewer1D extends EventTarget {
 		if(this.fullView) {
 			this.zoomPanel.updateRoi(e.detail);
 			this.annotationPanel.updateRoi(e.detail);
+			this.cellTypePanel.updateRoi(e.detail);
 		}
 		this.notifyRoiChange(e.detail);
 	}
@@ -574,6 +591,7 @@ class Viewer1D extends EventTarget {
 		this.sliderPanel.setRoiPos(e.detail.pos);
 		this.sliderPanel.setCursorPos(e.detail.cursorPos);
 		this.annotationPanel.updateRoi(e.detail);
+		this.cellTypePanel.updateRoi(e.detail);
 		this.notifyRoiChange(e.detail);
 	}
 	
@@ -587,6 +605,16 @@ class Viewer1D extends EventTarget {
 		e.preventDefault();
 		this.sliderPanel.setCursorPos(e.detail.cursorPos);
 		this.notifyRoiChange(e.detail);
+	}
+	
+	handleCelltypeTabActivated(e) {
+		e.preventDefault();
+		this.zoomPanel.setSelectableLayers(e.detail);
+	}
+	
+	handleCelltypeLayersChange(e) {
+		e.preventDefault();
+		this.zoomPanel.setActiveLayers(e.detail);
 	}
 	
 	notifyRoiChange(roi) {
@@ -701,6 +729,7 @@ class Viewer1D extends EventTarget {
 			this.sliderPanel.absolutePositions = status.positions;
 			this.zoomPanel.absolutePositions = status.positions;
 			this.annotationPanel.absolutePositions = status.positions;
+			this.cellTypePanel.absolutePositions = status.positions;
 			redrawFlag = true;
 		}
 

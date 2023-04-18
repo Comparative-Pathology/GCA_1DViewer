@@ -104,10 +104,12 @@ class TabbedPanel {
 	
 		this.updateTheme();		
 	}	
-
-
 	
 	handleTabClick(k){
+		if(k == this.currentTab)
+			return;
+
+		let previousTab = this.currentTab;	
 		this.tabButtons[this.currentTab].classList.remove('current-tab');
 //		this.tabContainers[this.currentTab].classList.remove('current-tab');
 		this.tabContainers[this.currentTab].style.display = 'none';
@@ -119,11 +121,16 @@ class TabbedPanel {
 			let e = new CustomEvent('tabActivated', {});
 			this.tabListeners[this.currentTab].dispatchEvent(e);
 		}
+		if(this.tabListeners[previousTab]) {
+			let e = new CustomEvent('tabDeactivated', {});
+			this.tabListeners[previousTab].dispatchEvent(e);
+		}
 	}
 
 	setTabListener(tab, listener, callback) {
 		this.tabListeners[tab] = listener;
 		listener.addEventListener('tabActivated', callback.bind(listener));	
+		listener.addEventListener('tabDeactivated', callback.bind(listener));	
 	}
 	
 	updateTheme() {
@@ -146,5 +153,5 @@ class TabbedPanel {
 	clear() {
 		this.container.innerHTML = '';
 	}
-
+	
 }
