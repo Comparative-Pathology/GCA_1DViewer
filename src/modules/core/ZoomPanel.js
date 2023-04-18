@@ -44,6 +44,11 @@ class ZoomPanel extends DisplayPanel{
 		this.regionBoxes = new Array();
 		this.markerIcons = new Array();
 		this.currentBranch = 0; //'colon';
+		this.selectableLayers = false;
+		this.selectedLayers = [];
+		for(let layer of GutAnatomy.visibleIntstinalLayers) {
+			this.selectedLayers[layer.toUpperCase()] = true;
+		}
 	}
 
 	initializePanel() {
@@ -194,6 +199,26 @@ class ZoomPanel extends DisplayPanel{
 //		this.postable.add.tspan()
 
 	}
+	
+	setSelectableLayers(status) {   // called by Viewer 1D upon receiving event cell type tab clicking event
+		this.selectableLayers = status.status;
+		this.setActiveLayers(status.layers)
+	}
+		
+	setActiveLayers(cellTypeLayers) {   // called by Viewer 1D upon receiving event from cell type panel
+		for(let layer of cellTypeLayers) {
+			if(layer.name.toUpperCase() in this.selectedLayers) { 
+				this.selectedLayers[layer.name.toUpperCase()] = layer.selected;
+			} 
+		}
+		this.redraw();
+	}
+
+	handleLayerCheckBoxClick(index, chkBox) {
+		this.selectedLayers[index.toUpperCase()] = chkBox.checked;
+		let e = new CustomEvent('zoom_layers_selection_change', {cancelable: true, detail: this.selectedLayers});
+		this.parent.dispatchEvent(e);
+	} 
 
 	drawLayersTitles(){
 		if(!this.layersVisible) {
@@ -206,8 +231,38 @@ class ZoomPanel extends DisplayPanel{
 		}
 		let maxWidth = 0;
 		let layersTitles = []
+
+		let text = this.ctx.text('Mp').font(Theme.currentTheme.posFont).addClass('medium-text');
+		let textHeight = text.bbox().height;
+		text.remove();
+		
 		for(let i=0; i<GutAnatomy.visibleIntstinalLayers.length; i++) {
-			layersTitles[i] = this.ctx.text(GutAnatomy.visibleIntstinalLayers[i]).font(Theme.currentTheme.posFont).addClass('medium-text');
+
+			if(this.selectableLayers) {
+				let layer = GutAnatomy.visibleIntstinalLayers[i].toUpperCase();
+				let selected = this.selectedLayers[layer];
+
+				let chkBoxSize = textHeight + 4;
+				let title = this.ctx.group();
+				let chkBox = document.createElement('div');
+				chkBox.innerHTML = `<input type="checkbox" id="select-zoom-layer-${i}"
+									       name="select-zoom-layer" ${selected?"checked":""}
+									       style="width:${chkBoxSize-4}px; height:${chkBoxSize-4}px" >`
+				let tt = title.foreignObject(chkBoxSize, chkBoxSize)
+				tt.add(chkBox);
+				title.text(GutAnatomy.visibleIntstinalLayers[i]).font(Theme.currentTheme.posFont).addClass('medium-text').x(chkBoxSize+3); 
+				layersTitles[i] = title;
+
+				 
+				chkBox = document.getElementById(`select-zoom-layer-${i}`)
+
+				chkBox.onclick = this.handleLayerCheckBoxClick.bind(this, layer, chkBox);
+
+			}
+			else {
+				layersTitles[i] = this.ctx.text(GutAnatomy.visibleIntstinalLayers[i]).font(Theme.currentTheme.posFont).addClass('medium-text');;
+			}
+			
 			let w = layersTitles[i].bbox().width;
 			if (w > maxWidth) {
 				maxWidth = w
@@ -231,6 +286,7 @@ class ZoomPanel extends DisplayPanel{
 		for(let i=0; i<layersTitles.length; i++) {
 			let lt = thickness/layersTitles.length
 			let ly = y + (i-1)*lt 
+
 			layersTitles[i].x(x).cy(ly-lt)
 		}
 	}

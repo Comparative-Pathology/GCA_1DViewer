@@ -6,10 +6,12 @@ import './help/help.css';
 import rawHelpContent from './help/help.md'
 
 import anatomyData from './gca_anatomy_h_v1.json'
+import cellTypesData from './cellTypesByRegionAndLayer.json'
 
 window.rawHelpContent = rawHelpContent;
 window.viewer1dIcons = importAll(require.context('./Icons', false, /\.svg$/));
 window.jsonAnatomy = anatomyData;
+window.jsonCellTypes = cellTypesData;
 window.helpImages = importAll(require.context('./help/images', false, /\.png$/));
 window.cssImported = true;
 
