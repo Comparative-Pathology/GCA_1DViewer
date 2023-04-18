@@ -89,7 +89,7 @@ class AnnotationPanel extends DisplayPanel {
 */		
 
 	}
-
+/*
 	initialiseTabCtx(ctx, index, title, x, y, width, height) {
 
 		let paneWidth = width;
@@ -125,12 +125,17 @@ class AnnotationPanel extends DisplayPanel {
 		tab.title.on('click', this.handleTabClick.bind(this, tab.index));
 		
 		return tab;
-	}	
-/*	
-	handleTabClick(index) {
-		this.activateTab(index);	
+	}
+*/
+
+		
+	handleTabEvents(e) {
+		super.handleTabEvents(e)   //from class DisplayPanel
+		
+//		this.activateTab(index);	
 	}
 	
+/*	
 	activateTab(index) {
 		for(let k=0; k<this.tabs.length; k++) {
 			if(k != index) {
@@ -150,7 +155,8 @@ class AnnotationPanel extends DisplayPanel {
 		}
 
 	}
-*/	
+*/
+	
 	populateAnnotations() {
 		this.annotationList = new Array();
 		for(let region of this.gutModel.regions) {

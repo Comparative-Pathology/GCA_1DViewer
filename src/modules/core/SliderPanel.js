@@ -254,6 +254,9 @@ class SliderPanel extends DisplayPanel{
 	}
 	
 	updateRoi(pos, branchIndex, width=null, cursorPos=null) {
+		if(!this.sliders)
+			return;
+
 		let newPos = pos;
 		if(branchIndex != undefined && branchIndex != null && branchIndex != this.currentSlider) {
 			if(this.mode == 'overlap') {
@@ -269,6 +272,7 @@ class SliderPanel extends DisplayPanel{
 			}
 		}
 		let w = width || this.sliders[this.currentSlider].getRoiExtents().width;
+		
 		if (width && (width != this.sliders[this.currentSlider].getRoiExtents().width)) {
 			this.sliders[this.currentSlider].updateRoiWidth(width);
 			if(newPos == null) {
@@ -291,12 +295,18 @@ class SliderPanel extends DisplayPanel{
 	}
 	
 	setCursorPos(pos) {
+		if(!this.sliders)
+			return;
+		
 //		let extents = this.sliders[this.currentSlider].getRoiExtents()
 //		let newPos = clamp(pos, extents.pos, extents.pos+extents.width) 
 		return this.sliders[this.currentSlider].setCursorPos(pos);
 	}
 	
 	setCurrentSlider(sliderIndex) {
+		if(!this.sliders)
+			return;
+			
 		if (sliderIndex != this.currentSlider) {
 			this.sliders[this.currentSlider].diactivateRoi();
 			this.currentSlider = sliderIndex;
@@ -1276,7 +1286,7 @@ class Slider {
 	}
 
 	getRoiExtents() {
-		return {pos: this.roiPos, width: this.roiWidth, cursorPos: this.cursorPos}
+		return {pos: this.roiPos, width: this.roiWidth, cursorPos: this.cursorPos, branch: this.gutModel.branch}
 	}
 
 	getBase() {
