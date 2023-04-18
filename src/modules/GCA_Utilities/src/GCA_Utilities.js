@@ -19,14 +19,14 @@ let getCurrentScriptPath = function(level=0) {
 	let stackLines = (new Error()).stack.split('\n');
 	let callerIndex = 0;
 	for(let i in stackLines){
-		if(!stackLines[i].match(/(file|http):\/\//)) 
+		if(!stackLines[i].match(/(file|http|https|webpack):\/\//)) 
 			continue;
 		if(stackLines[i].indexOf('getCurrentScriptPath') >= 0 ) 
 			continue;
 		callerIndex = Number(i);
 		break;
 	}
-	let pathParts = stackLines[callerIndex].match(/(((file|http):\/\/.+\/)([^\/]+\.js))/i);
+	let pathParts = stackLines[callerIndex].match(/(((file|http|https|webpack):\/\/.+\/)([^\/]+\.js))/i);
 	let p = pathParts[2].split('\/')
 	p.length = Math.max(1, p.length - level - 1);
 	return p.join('\/');
@@ -353,7 +353,7 @@ class Sidebar {
 				break;
 		} 
 		this.sidebar.style.transition += collapse? `, opacity ${2*this.delay}s` : `, opacity 0s`;
-		this.sidebar.style.opacity = collapse? '0' : '0.8';
+		this.sidebar.style.opacity = collapse? '0' : '0.92';
 		this.isCollapsed = collapse;
 	}
 

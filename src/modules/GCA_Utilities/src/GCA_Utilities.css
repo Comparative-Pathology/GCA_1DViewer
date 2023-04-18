@@ -9,7 +9,7 @@
   position: absolute;
   top: 0;
   z-index: 100;
-  background-color: rgba(30, 30, 30);
+  background-color: #4A4A4A;
   white-space: nowrap;
   overflow-x: hidden;
 }

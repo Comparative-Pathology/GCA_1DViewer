@@ -142,7 +142,7 @@ class DisplayPanel extends EventTarget {
 	handleTabEvents(e) {
 		if(e.type === 'tabActivated'){	
 			this.redraw();
-		}	
+		}
 	}
 	
 	setPanelVisibility(visible) {
