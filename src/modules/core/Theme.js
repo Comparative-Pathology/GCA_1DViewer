@@ -53,6 +53,7 @@ let theme1 = {	bkgColor: 			'#605555',
 				annotationBkgColor1:	{ type: 'linear', stops: [{offset:0, color:'#bcb8c8'}, {offset:0.25, color:'#ece8f4'},{offset:0.5, color:'#f4f0fa'},{offset:0.75, color:'#ece8f4'}, {offset:1, color:'#bcb8c8'}], from: [0, 0], to: [0, 1] },
 				annotationBkgColor:	'#ccc8db',
 				annotationHighlight:{ color: '#fff', opacity: 0.4 },
+				borderColor: 		'#797979',
 							
 				gutColor:			{border: '#000', fill: ['#ddd', '#777'], opacity: 0.8},
 				gutExtColor: 		{border: '#000', fill: ['#ffeda5', '#a88914'], opacity: 0.8},
@@ -92,6 +93,7 @@ let theme2 = {	bkgColor: 			'#646890',//'#626492',
 				zoomBkgColor: 		'#fff',
 				annotationBkgColor:	'#fff',
 				annotationHighlight:{ color: '#999', opacity: 0.25 },
+				borderColor: 		'#b9b9b9',
 
 				gutColor:			{border: '#000', fill: ['#ddd', '#777'], opacity: 0.8},
 				gutExtColor: 		{border: '#000', fill: ['#ffeda5', '#a88914'], opacity: 0.8},
@@ -132,6 +134,7 @@ var theme3 = {	bkgColor: 			'#111',
 				annotationBkgColor1:	{ type: 'linear', stops: [{offset:0, color:'#404040'}, {offset:0.2, color:'#555555'},{offset:0.5, color:'#606060'},{offset:0.8, color:'#555555'}, {offset:1, color:'#404040'}], from: [0, 0], to: [0, 1] },
 				annotationBkgColor:	'#444',
 				annotationHighlight:{ color: '#fff', opacity: 0.2 },
+				borderColor:		'#949494',
 
 				gutColor:			{border: '#eee', fill: ['#c0c0c0', '#909090'], opacity: 0.8},
 
@@ -230,6 +233,7 @@ class Theme {
 	get zoomBkgColor() { return this.color('zoomBkgColor') };
 	get annotationBkgColor() { return this.color('annotationBkgColor') };
 	get annotationHighlight() { return this.color('annotationHighlight') };
+	get borderColor() { return this.color('borderColor'); }
 
 	get zoomCursorColor() { return this.color('zoomCursorColor') };
 	get zoomLayersLine() { return this.property('zoomLayersLine') };
