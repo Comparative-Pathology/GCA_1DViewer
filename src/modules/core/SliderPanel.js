@@ -32,16 +32,16 @@ class SliderPanel extends DisplayPanel{
 	 * @param {number} vOffset vertical offset of the panel
 	 * @param {boolean} lr false specifes the direction of linear model display from left to right or right to left 
 	 */
-	constructor(container, parent, model, absolutePositions=true, lr = false) {
+	constructor(container, parent, model, absolutePositions=true, lr = false, displayMode='full') {
 		super(container, parent, model, 'sliderBkgColor');
 		this.lr = lr;
 		this.sliderGap = 5;
-		this.mode = 'full';
+		this.mode = this.getDisplayModeName(displayMode);
 		this.absolutePositions = absolutePositions;
 	}
 
 	initializePanel() {
-		this.mode = 'full';
+//		this.mode = 'full';
 	}
 
 	initializeSliders() {
@@ -409,7 +409,19 @@ class SliderPanel extends DisplayPanel{
 		return (this.mode === 'full')? 0 : (this.mode === 'overlap')? 3 : (this.mode === 'main')? 1 : 2; 
 	}
 
-	setDisplay(displayMode) {
+	getDisplayModeName(displayModeIndex) {
+		let modes = ['full', 'main', 'ext', 'overlap'];
+		let mode = (displayModeIndex==null || displayModeIndex<0 || displayModeIndex>=modes.length)? 0 : displayModeIndex;
+		return modes[mode];
+	}	
+
+	setDisplayMode(displayMode) { //displaMode can be integer index or a string name 
+		let mode = displayMode;
+		if(typeof displayMode == 'number')
+			mode = this.getDisplayModeName(displayMode);
+		this.updateDisplay(mode);
+
+/*		
 		switch(displayMode) {
 			case 0:	// diplay colon & ileum separately
 				this.updateDisplay('full')
@@ -424,6 +436,7 @@ class SliderPanel extends DisplayPanel{
 				this.updateDisplay('overlap')
 				break;
 		}
+*/
 	}
 
 	static findRoiShares(roi, model) {
