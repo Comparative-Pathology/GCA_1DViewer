@@ -11,7 +11,7 @@ export {GutAnatomy};
 class GutAnatomy {
 
 	loadJsonAnatomy(url) {
-		GutAnatomy.visibleIntstinalLayers = ['Serosa', 'Muscularis', 'Submucosa', 'Mucosa', 'Lumen'];	
+		GutAnatomy.visibleIntstinalLayers = ['Serosa', 'Muscularis Propria', 'Submucosa', 'Mucosa', 'Lumen'];	
         if (typeof jsonAnatomy !== 'undefined') {
             GutAnatomy.anatomyData = jsonAnatomy; 
             GutAnatomy.flatAnatomy = (jsonAnatomy.children==undefined)
