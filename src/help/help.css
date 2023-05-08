@@ -22,11 +22,11 @@
 }
 
 .help-container a:link {
-  color: blue;
+  color: #439dff;
 }
 
 .help-container a:visited {
-  color: blue;
+  color: #439dff;
 }
 
 .help-container a:hover {
@@ -51,5 +51,5 @@
 
 .is-active {
 	font-weight: 700;
-	color: #bb2205 !important;
+	color: #d73d05 !important;
 }
