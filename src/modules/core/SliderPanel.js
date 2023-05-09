@@ -421,22 +421,6 @@ class SliderPanel extends DisplayPanel{
 			mode = this.getDisplayModeName(displayMode);
 		this.updateDisplay(mode);
 
-/*		
-		switch(displayMode) {
-			case 0:	// diplay colon & ileum separately
-				this.updateDisplay('full')
-				break;
-			case 1: // diplay colon alone 
-				this.updateDisplay('main')
-				break;		
-			case 2: // diplay ileum alone 
-				this.updateDisplay('ext')
-				break;
-			case 3: // diplay colon & ileum overlapping
-				this.updateDisplay('overlap')
-				break;
-		}
-*/
 	}
 
 	static findRoiShares(roi, model) {
