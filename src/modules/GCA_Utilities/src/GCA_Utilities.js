@@ -171,7 +171,7 @@ class Utility {
 		for(let styleSheet of document.styleSheets) {
 			let rules = styleSheet.rules || styleSheet.cssRules; 
 			for(let rule of rules) {
-				if(rule.style === selector) {
+				if(rule.selectorText == selector) {
 					return rule;
 				}
 			}

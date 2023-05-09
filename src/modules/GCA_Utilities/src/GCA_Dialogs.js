@@ -46,6 +46,30 @@ class PopupDialog {
 		this.init();
 	}
 	
+	static setDialogTheme(background, color, borderColor) {    // Global setting of all dialog themes (background and color)
+		let dialogThemeClass = Utility.getStyle('.ui-dialog .ui-dialog-content');
+		if(dialogThemeClass ) { 
+		    dialogThemeClass.style.backgroundColor = background;
+		    dialogThemeClass.style.color = color;
+		}
+		dialogThemeClass = Utility.getStyle('.ui-dialog .ui-dialog-buttonpane');
+		if(dialogThemeClass ) { 
+		    dialogThemeClass.style.backgroundColor = background;
+		    dialogThemeClass.style.color = color;
+		}
+		dialogThemeClass = Utility.getStyle('.ui-widget.ui-widget-content');
+		if(dialogThemeClass ) { 
+		    dialogThemeClass.style.backgroundColor = background;
+		    dialogThemeClass.style.borderColor = borderColor;
+		}
+		dialogThemeClass = Utility.getStyle('.help-container');
+		if(dialogThemeClass ) { 
+		    dialogThemeClass.style.backgroundColor = background;
+		    dialogThemeClass.style.color = color;
+		}
+
+	}
+	
 	configDialog(config, autoclose=true) {   // autoclose=true the dialog will close on mouseout, autoclos=number dialog will close on mouseout after delay for number milliseconds
 		this.dialog = $(`#${this.dialogName}-dialog`).dialog(config);
 		this.dialog.on("dialogopen", this.setClickHandler.bind(this));	
