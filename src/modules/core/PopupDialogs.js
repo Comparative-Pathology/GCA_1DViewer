@@ -881,7 +881,7 @@ class SettingsDialog extends PopupDialog {
 						<label id="layers-label" for="layers" class="label" >Display intestine wall layers</label>
 						<br/></p>
 						<label for="sliders">Display:</label>
-						<select id="sliders" name="sliders">
+						<select id="sliders" name="sliders" class="ui-dark">
 						   <option value="0">Colon & Small Intestine</option>
 						   <option value="1">Colon</option>
 						   <option value="2">Small Intestine</option>
@@ -1017,7 +1017,6 @@ class HelpPopup extends PopupDialog {
 	constructor(container, helpFile) {
 		
 		let css = `<style> 
-
 					.help-wrapper {
 						margin: 0 auto;
 						display: grid;
