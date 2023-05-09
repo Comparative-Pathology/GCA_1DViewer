@@ -120,10 +120,18 @@ class ZoomPanel extends DisplayPanel{
 		t.remove();
 		let tickHeight = 0.1*zoomHeight
 		this.gutThickness = this.y2PosTick - this.y1PosTick - tickHeight;
-		this.gutThicknessExtension = .9 * this.gutThickness;
-//		this.base = (this.y2PosTick + this.y1PosTick) / 2.0 + ;
+		
+		
 		this.base = this.y1PosTick + this.gutThickness/2 + .7*tickHeight;
-		this.trackDisplacement = this.base - this.y1PosTick - this.gutThickness/2 - 10;
+		if (this.startRegion && this.startRegion.branch != this.endRegion.branch) {		
+			this.gutThicknessExtension = .9 * this.gutThickness;
+			this.trackDisplacement = this.base - this.y1PosTick - this.gutThickness/2 - 10;
+		}
+		else { 
+			this.gutThicknessExtension = this.gutThickness;
+			this.trackDisplacement = 0;
+		}
+//		this.base = (this.y2PosTick + this.y1PosTick) / 2.0 + ;
 		this.baseExtension = this.base - (this.gutThickness - this.gutThicknessExtension)/2 - this.trackDisplacement;
 		this.verticalPositionsSet = true;
 	}
