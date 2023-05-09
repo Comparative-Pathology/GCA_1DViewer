@@ -49,6 +49,7 @@ class Viewer1D extends EventTarget {
 		this.container = Util.Utility.addElement(container, 'div', 'wraper1D', 'hidden-scroll'); //creating a wrapper div inside the specified container
 		Core.Theme.initialize(this.container, this.themeIndex);
 		Core.PopupDialogs.initialize(this.container);
+		setTimeout(this.setDialogTheme.bind(this), 100); // call the function with a delay to allow stylesheetsbeing loaded
 					
 		this.margin = 5;
 			
@@ -209,6 +210,7 @@ class Viewer1D extends EventTarget {
 	changeTheme(index=null) {
 		this.themeIndex = Core.Theme.nextTheme(index);
 		this.textTabbedPanel.updateTheme();
+		this.setDialogTheme();
 		this.redraw();
 	}
 	
@@ -290,7 +292,7 @@ class Viewer1D extends EventTarget {
 	createPanels() {	
 		this.titlePanel = new Core.TitlePanel(this.titlePanelContainer, this, this.gutModel);
 		
-		this.sliderPanel = new Core.SliderPanel(this.sliderPanelContainer, this, this.gutModel, this.absolutePositions, this.lr);
+		this.sliderPanel = new Core.SliderPanel(this.sliderPanelContainer, this, this.gutModel, this.absolutePositions, this.lr, this.displayMode);
 		
 		this.zoomPanel = new Core.ZoomPanel(this.zoomPanelContainer, this, this.gutModel, this.absolutePositions, this.layersVisible, this.lr);
 		
@@ -465,6 +467,10 @@ class Viewer1D extends EventTarget {
 		this.clearPanels();
 		this.zoomPanel.setPanelVisibility(this.fullView);
 		this.textTabbedPanel.setVisible(this.fullView);
+		if(this.fullView) {
+			this.textTabbedPanel.updateTheme();
+		}
+		
 		this.adjustContainers();
 		this.displayModel(currentRoi, this.currentBranch);
 	}
@@ -708,7 +714,7 @@ class Viewer1D extends EventTarget {
 		let status = { themeIndex: 	this.themeIndex, 
 					   lr:			this.lr, 
 					   showLayers:	this.zoomPanel.layersVisible, 
-					   displayMode:	this.sliderPanel.getDisplayModeIndex(),
+					   displayMode:	this.displayMode,
 					   positions:	this.absolutePositions,					
 					   zoomVisible: this.zoomVisibleByDefault
 					}
@@ -721,6 +727,7 @@ class Viewer1D extends EventTarget {
 		if(this.themeIndex != status.themeIndex) { 
 			Core.Theme.setTheme(status.themeIndex);
 			this.themeIndex = status.themeIndex;
+			this.setDialogTheme();
 			redrawFlag = true;
 		}
 		
@@ -743,7 +750,12 @@ class Viewer1D extends EventTarget {
 			redrawFlag = false;
 		}
 
-		this.sliderPanel.setDisplay(status.displayMode);
+		if(this.displayMode != status.displayMode) {
+			this.displayMode = status.displayMode
+			this.sliderPanel.setDisplayMode(status.displayMode);
+			redrawFlag = true;			
+		}
+		
 		
 		this.zoomVisibleByDefault = status.zoomVisible;
 		
@@ -769,6 +781,7 @@ class Viewer1D extends EventTarget {
 		let savedZoomVisible = localStorage.getItem("ZoomVisible");
 		let savedLayers = localStorage.getItem("Layers");
 		let savedPositions = localStorage.getItem("AbsolutePositions");
+		let savedDisplayMode = localStorage.getItem("DisplayMode");
 		
 		this.themeIndex = (theme == undefined)? ((savedTheme!='undefined' && savedLayers !== null)? Number(savedTheme) : 0) : theme;
 		this.lr = (lr == undefined)? (savedLr!='undefined' && savedLr!==null)? (savedLr=='true') : false : lr;
@@ -783,6 +796,11 @@ class Viewer1D extends EventTarget {
 		if (savedPositions !== 'undefined' && savedPositions !== null) {
 			this.absolutePositions = savedPositions=='true';
 		}
+
+		if (savedDisplayMode !== 'undefined' && savedDisplayMode !== null) {
+			this.displayMode = savedDisplayMode;
+		}
+
 	}
 	
 	storeSettings() {
@@ -794,9 +812,14 @@ class Viewer1D extends EventTarget {
 		localStorage.setItem("Layers", this.layersVisible);
 		localStorage.setItem("ZoomVisible", this.zoomVisibleByDefault);
 		localStorage.setItem("AbsolutePositions", this.absolutePositions);
-		localStorage.setItem("Sliders", this.displayMode);
+		localStorage.setItem("DisplayMode", this.displayMode);
 		
 	}
 	
+	setDialogTheme() {
+		Util.PopupDialog.setDialogTheme(Core.Theme.currentTheme.annotationBkgColor, 
+										Core.Theme.currentTheme.titleFontName.fill,
+										Core.Theme.currentTheme.borderColor);
+	}
 	
 }
