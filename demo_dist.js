@@ -17,7 +17,7 @@ class DemoViewer extends EventTarget {
 		this.viewer1D.addModelChangeListener(this, this.handleModelChange);     // (optional) adding a handler for model change events 
 		this.viewer1D.addFullviewToggleListener(this, this.handleToggleFullView1D);   // (optional) adding a handler for handling zoom panel expand/collapse events   
 		this.container = container;
-		this.viewer1D.loadModel('models/EdinGCA_1D_00010_1_16.json', this.handleModelReady.bind(this))  // Load and display a 1D model and set a callback for any required post load processing  
+		this.viewer1D.loadModel('models/EdinGCA_1D_00010_1_17.json', this.handleModelReady.bind(this))  // Load and display a 1D model and set a callback for any required post load processing  
 	}
 
 	handleModelReady() {
