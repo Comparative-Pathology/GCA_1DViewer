@@ -124,6 +124,9 @@ class CellTypePanel extends DisplayPanel {
 		this.cellTypeList = new Array();
 		for(let region of this.gutModel.regions) {
 			let regionCellTypesLayerList = GutCellTypes.findCellTypeByRegionId(region.anatomy[0].id);
+			if(!regionCellTypesLayerList) {
+				continue;
+			}
 			regionCellTypesLayerList.sort((a, b)=>{return a.layer.localeCompare(b.layer)});
 			for(let layer of regionCellTypesLayerList) {
 				layerSet.add(layer.layer);
