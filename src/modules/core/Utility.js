@@ -39,6 +39,7 @@ class UtilityViewer1D {
 			UtilityViewer1D.addTooltip(ctx, icon, tooltip);
 		}
 
+		icon.css({cursor: 'pointer'});
 		return icon;
 	}	
 }
