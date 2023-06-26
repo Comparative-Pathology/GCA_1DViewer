@@ -62,6 +62,11 @@ class PopupDialog {
 		    dialogThemeClass.style.backgroundColor = background;
 		    dialogThemeClass.style.borderColor = borderColor;
 		}
+		dialogThemeClass = Utility.getStyle('.ui-widget-content a');
+		if(dialogThemeClass ) { 
+		    dialogThemeClass.style.backgroundColor = background;
+		    dialogThemeClass.style.color = color;
+		}		
 		dialogThemeClass = Utility.getStyle('.help-container');
 		if(dialogThemeClass ) { 
 		    dialogThemeClass.style.backgroundColor = background;
@@ -220,8 +225,7 @@ class ModelPopup extends InfoPopup {
 						<p/>
 						
 						<label class="label">Contact:</label>
-						<a id="model-contact" href=""></a>
-						<label id="model-contact" class="text popup-data"></label>`;
+						<a id="model-contact" href=""></a>`;
 
 						
 		super('model-popup', title, content, container);
@@ -239,6 +243,7 @@ class ModelPopup extends InfoPopup {
 		this.owner = $(`#model-owner`)[0];
 		this.species = $(`#model-species`)[0];
 		this.contact = $(`#model-contact`)[0];
+		this.contact.blur();
 	}
 	
 	showContent(model) {

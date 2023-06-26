@@ -35,6 +35,7 @@ svg text {
 }
 
 .clickable-title:hover {
+	cursor: pointer;
 	filter: invert(15%);
 	font-weight: bold;
 }
