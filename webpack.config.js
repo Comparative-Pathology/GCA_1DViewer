@@ -1,5 +1,7 @@
+const path = require('path');
 module.exports = {
-  mode: 'development',
+  mode: 'production',
+//  mode: 'development',
   entry: {
     GCA_Viewer1D: './src/index.js',
     GCA_Utils: './src/modules/GCA_Utilities.js'
@@ -7,7 +9,8 @@ module.exports = {
 
  output: {
     filename: '[name].js',
-    path: __dirname + '/dist',
+    path: path.resolve('dist'),
+//    path: __dirname + '/dist',
     library: '[name]',
     libraryTarget: "umd",
   },
@@ -32,14 +35,22 @@ module.exports = {
           }
         ]
       },
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
+
+
+      { 
+        test: /\.css$/, 
+        use: ['style-loader']
       },
- 
+
+      {
+        test: /\.css$/, 
+        loader: "css-loader",
+        options: {
+          url: true,
+          esModule: false
+        }
+      },
+
       {
         test: /\.md$/,
         use: 'raw-loader'
@@ -56,10 +67,12 @@ module.exports = {
           }
         ]
       },
-
-
    
     ]      
+  },
+
+  resolve: {
+    extensions: ['.js'],
   },
 
 }
