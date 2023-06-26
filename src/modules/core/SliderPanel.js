@@ -467,6 +467,7 @@ class Slider {
 	 * @param {number} hOffset horizontal offset of the slider to position the slider
 	 */
 	constructor(index, parent, model, absolutePositios=true, width, hOffset, height, vOffset=0) {
+		this.overlapRegionStyle = 2;		//display style for overlap region background  0: defined region background  1: stipple on the defibned regionbackground  2: gray stipple [default]   		
 		this.index = index;
 		this.parent = parent
 		this.gutModel = model;
@@ -558,11 +559,19 @@ class Slider {
 		this.isRoiActive = false;
 	}
 
+	getOverlapPattern(color, size = 2) {
+		let patern = this.ctx.pattern(6, 6, function(add) {
+												  add.rect(6, 6).fill(color)
+												  add.rect(size, size)
+												  add.rect(size, size).move(3, 3)
+											  } )
+		return patern;
+	}
+
 	drawGut() {
-		this.regionNodes = new Array(); // used to handle mouse out to control the pos roi 
+		this.regionBoxes = new Array(); // used to handle mouse out to control the pos roi 
 		this.ctx.textAlign = "center";
 		this.ctx.lineWidth = 1;
-		let i = 0;
 		let startPos = this.gutModel.getStartPos();
 		let endPos = this.gutModel.getEndPos();
 		let startX = this.transform.getX(startPos);
@@ -579,7 +588,13 @@ class Slider {
 		}
 		let regionsTitles = [];
 		let positions = [];
-		for (let region of this.gutModel.regions) {
+
+		for (let i=0; i<this.gutModel.regions.length; i++) {
+			let region = this.gutModel.regions[i];
+			if (region.startPos > this.endPos || region.endPos < this.startPos) 
+				continue;
+			
+/*			
 			let regionColor = ((region.branch === 1)? Theme.currentTheme.gutColor.fill[i%2] : Theme.currentTheme.gutExtColor.fill[i%2]);
 			let regionOpacity = ((region.branch === 1)? Theme.currentTheme.gutColor.opacity : Theme.currentTheme.gutExtColor.opacity);
 			if (region.color != undefined || region.color != null) {
@@ -589,20 +604,66 @@ class Slider {
 			let fillColor = { color: regionColor, opacity: regionOpacity };
 
 			let color = {border: Theme.currentTheme.gutColor.border, background: fillColor };	
-//			let {title, regionRect} = this.drawGutRegion(region, color, i%2);
-			let {title, regionRect} = this.drawGutRegion(region, color, false);
-			regionsTitles.push(title);
-			x = this.transform.getX(region.endPos);
-			this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
-			if(this.absolutePositions) {
-				text = this.ctx.text(region.endPos + '').font(Theme.currentTheme.posFont).addClass('small-text');
-				text.cx(x).y(this.yPosTxt);
-				positions.push(text);
+			let regionBox = this.drawGutRegion(region, color, i%2);
+*/
+
+			let regionColor = ((region.branch === 1)? Theme.currentTheme.gutColor.fill[i%2] : Theme.currentTheme.gutExtColor.fill[i%2]);
+			if (region.color != undefined && region.color != null) {
+				regionColor = region.color;
 			}
-			this.regionNodes.push(regionRect.node);
-			i++;
+			let regionOpacity = ((region.branch === 1)? Theme.currentTheme.gutColor.opacity : Theme.currentTheme.gutExtColor.opacity);
+			let blendColor =  '#404040';
+			let borderColor = Theme.currentTheme.gutColor.border;
+			let innerBorder = false;
+			if(region.overlaps) {
+				if (region.color == undefined || region.color == null) {
+					regionColor = Theme.currentTheme.landmarkColor.fill;
+				}
+				if(this.overlapRegionStyle==1) {				
+					regionColor = this.getOverlapPattern(regionColor);
+				}
+				if(this.overlapRegionStyle!=0 && this.overlapRegionStyle!=1) {				
+					regionColor = this.getOverlapPattern('#baa');
+				}
+	//			let regionColor = Theme.currentTheme.gradientColorS5(Theme.currentTheme.landmarkColor.fill, 0.1, .9, start, end, landmark.position);
+	//			let regionColor = Theme.currentTheme.gradientColorS5(regionColor, 0.55, .75, start, end, landmark.position);
+				blendColor =  '#888888';
+				if(this.overlapRegionStyle==0) {
+					regionColor = Utility.colorBlend(regionColor, blendColor, .7)
+				}
+				regionOpacity = Theme.currentTheme.landmarkColor.opacity;
+				borderColor = Theme.currentTheme.landmarkColor.border
+				innerBorder = true;
+			}
+			else {
+				regionColor = Utility.colorBlend(regionColor, blendColor, .7)
+	//			regionColor = Utility.colorShade(regionColor, 0.8);
+			}
+
+			let fillColor = { color: regionColor, opacity: regionOpacity };
+			let color = {border: borderColor, background: fillColor };
+			let regionBox = this.drawGutRegion(region, color, innerBorder, i%2);
+
+
+			regionsTitles.push(regionBox.title);
+			x = this.transform.getX(region.endPos);
+			if(!region.overlaps || region.overlapCoverage <.8 ) {
+				this.ctx.line(x, this.y1PosTick, x, this.y2PosTick).stroke(Theme.currentTheme.tickPen);
+				if(this.absolutePositions) {
+					text = this.ctx.text(region.endPos + '').font(Theme.currentTheme.posFont).addClass('small-text');
+					text.cx(x).y(this.yPosTxt);
+					positions.push(text);
+				}
+			}
+			this.regionBoxes.push(regionBox);
 		}
-				
+		
+		for (let region of this.regionBoxes) {
+			if(region.region.overlaps) {
+				region.box.front();
+			}
+		}
+		
 		if(this.absolutePositions) {
 			this.adjustTitles(positions, this.lr, 3, false); // shift flag is false (titles will not be moved if there is space around them)
 			let adjust = Math.min(text.length() / 2, Math.max(0, this.transform.getMargin() - 1));
@@ -610,9 +671,7 @@ class Slider {
 			text.x(x - textOffset).y(this.yPosTxt);
 		}
 		
-
-		i = 0;
-//		let regionWidths = this.gutModel.regions.map(re)
+		let i = 0;
 		let regionsGaps = []; 
 		for (let region of this.gutModel.regions) {
 			regionsGaps.push(Math.max(0, (this.transform.pos2x(region.size) - regionsTitles[i++].length()) / 2.0 - 3));
@@ -918,7 +977,7 @@ class Slider {
 		}
 	}
 
-	drawGutRegion(region, color, titlePos=null) { 
+	drawGutRegion(region, color, innerBorder=false, titlePos=null) { 
 		let thickness = this.gutThickness;
 		let y = this.base;
 		if (region.branch === 1) {
@@ -927,7 +986,7 @@ class Slider {
 		}	
 		let x = this.transform.getX(this.lr ? region.startPos : region.endPos);
 		let width = this.transform.pos2x(region.size);
-		let regionRect = this.ctx.rect(width, thickness).x(x).cy(y)
+		let regionRect = this.ctx.rect(width,  thickness-(innerBorder? 2 : 0)).x(x).cy(y)
 			.fill(color.background).stroke({ color: color.border, width: 1 })
 			.on('click', this.handleRegionClick.bind(this, x))
 			.on('mouseover mousemove', this.handleRegionMouseover.bind(this, x))
@@ -944,9 +1003,14 @@ class Slider {
 		let titleText = title.tspan(region.name).dy(title.bbox().height/2);
 		let txtY = titlePos? this.yRegionTxt2 : this.yRegionTxt;
 		title.cx(this.transform.getX(region.startPos + region.size / 2.0)).y(txtY);
-		UtilityViewer1D.addTooltip(this.ctx, titleText, region.description);
+		let toolTip = region.description || region.name;
+		if(region.overlapCoverage > 0) {
+			toolTip += ' (overlaps with other regions)'
+		}  
 		
-		return {title, regionRect};
+		UtilityViewer1D.addTooltip(this.ctx, titleText, toolTip);
+		
+		return {box: regionRect, title: title, region: region};		
 	}
 
 	createRoiPolygon(pos = this.roiPos) {
@@ -1263,8 +1327,8 @@ class Slider {
 		if(e.explicitOriginalTarget === this.roi.node) 
 			return;
 		if(e.explicitOriginalTarget !== this.parent.background.node) { 
-			for(let node of this.regionNodes) {
-				if(e.explicitOriginalTarget === node)
+			for(let regionBox of this.regionBoxes) {
+				if(e.explicitOriginalTarget === regionBox.node)
 					return;
 			}
 		}

@@ -983,8 +983,10 @@ class RegionPopup extends InfoPopup {
 						<label id="region-end" class="text popup-data"></label>
 						<p/>
 						<label class="label">UBERON ID:</label>
-						<a id="region-uberon" href=""  target="_blank" ></a>`;
-//						<label id="region-uberon" class="text popup-data"></label>`;
+						<a id="region-uberon" href=""  target="_blank" ></a>
+						<p/>
+						<label class="label">Overlaps:</label>
+						<label id="region-overlaps" class="text popup-data"></label>`;
 		super('region-popup', 'Gut Region', content, container);
 	}
 	
@@ -993,6 +995,8 @@ class RegionPopup extends InfoPopup {
 		this.start = $(`#region-start`)[0];
 		this.end = $(`#region-end`)[0];
 		this.uberon = $(`#region-uberon`)[0];
+		this.overlaps = $(`#region-overlaps`)[0];
+		this.uberon.blur();
 	}
 	
 	
@@ -1001,7 +1005,18 @@ class RegionPopup extends InfoPopup {
 		this.start.textContent = region.startPos + ' mm';
 		this.end.textContent = region.endPos + ' mm';
 		this.uberon.textContent = region.uberonId;
-		this.uberon.href = getUberonLink(region.uberonId) 
+		this.uberon.href = getUberonLink(region.uberonId)
+		
+		if (!region.overlappingRegions) {
+			this.overlaps.textContent = 'none';
+		}
+		else {
+			let content = '<p/>';
+			for (let overlap of region.overlappingRegions) {
+				content += '&nbsp;&nbsp;&nbsp;' + overlap.region.name + ' ' + Math.round(overlap.coverage*100) + '&percnt;<p/>';
+			}
+			this.overlaps.innerHTML = content;				
+		}
 	}
 }
 

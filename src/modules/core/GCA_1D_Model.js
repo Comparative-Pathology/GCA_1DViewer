@@ -111,6 +111,7 @@ class Gut {
 			gut.addLandmark(landmark);
 		}
 
+		gut.markOverlapedRegions();
 		gut.landmarks.sort((a, b) => (a.position == b.position)? ((a.branch==0)? ((b.branch==0)?0:1):-1): a.position - b.position);
 		return gut;
 	}
@@ -193,6 +194,8 @@ class Gut {
 			gut.addLandmark(landmark);
 			landmarkElement = landmarks.iterateNext();
 		}
+		gut.markOverlapedRegions();
+		gut.landmarks.sort((a, b) => (a.position == b.position)? ((a.branch==0)? ((b.branch==0)?0:1):-1): a.position - b.position);
 		return gut;
 	}
 
@@ -218,6 +221,8 @@ class Gut {
 			}
 			p += s;
 		}
+		gut.markOverlapedRegions();
+		gut.landmarks.sort((a, b) => (a.position == b.position)? ((a.branch==0)? ((b.branch==0)?0:1):-1): a.position - b.position);
 		return gut;
 	}	
 
@@ -394,6 +399,39 @@ class Gut {
 		if (branch === 0)  //'colon'
 			return r.extension;
 		return r.main;
+	}
+
+	markOverlapedRegions(){  //This flags regions with both start and end postion inside another region
+		for(let region of this.regions) {
+			region.overlaps = false; 
+			let startFlag = false
+			let coverage = 0
+			let overlappingRegions = []
+			for(let region1 of this.regions) {
+				if(!startFlag && region.branch == region1.branch &&
+					region.startPos < region1.endPos && region.startPos > region1.startPos) {
+					startFlag = true;
+					let overlap = (Math.min(region.endPos, region1.endPos) - region.startPos)/(region.endPos - region.startPos);
+					overlappingRegions.push({region:region1, coverage:overlap});
+					coverage = overlap;
+					if(coverage>.99) { 
+						region.overlaps = true;
+					}
+				}
+				if(region.branch == region1.branch &&
+					region.endPos > region1.startPos && region.endPos < region1.endPos) {
+					let overlap = (region.endPos - Math.max(region.startPos, region1.startPos))/(region.endPos - region.startPos);
+					overlappingRegions.push({region:region1, coverage:overlap});
+					coverage += overlap;
+					if(coverage>.99) { 
+						region.overlaps = true;
+					}
+					break;
+				}
+			}	
+					region.overlapCoverage = coverage;
+					region.overlappingRegions = (overlappingRegions.length > 0)? overlappingRegions : null;
+		}
 	}
 
 	clearMarkers() {

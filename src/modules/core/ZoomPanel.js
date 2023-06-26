@@ -37,6 +37,7 @@ class ZoomPanel extends DisplayPanel{
 		super(container, parent, model, 'zoomBkgColor');
 		this.lr = lr;
 		this.ctx.textAlign = "center";
+		this.overlapRegionStyle = 2;		//display style for overlap region background  0: defined region background  1: stipple on the defibned regionbackground  2: gray stipple [default]   		
 		this.layersVisible = layersVisible;
 		this.absolutePositions = absolutePositios
 		this.xOffset = 0;
@@ -299,11 +300,20 @@ class ZoomPanel extends DisplayPanel{
 		}
 	}
 
+
+	getOverlapPattern(color, size = 2) {
+		let patern = this.ctx.pattern(10, 10, function(add) {
+												  add.rect(10, 10).fill(color)
+												  add.rect(size, size)
+												  add.rect(size, size).move(5, 5)
+											  } )
+		return patern;
+	}
+
 	drawGut() {
 		if(!this.verticalPositionsSet) {
 			this.setVerticalPositions(this.panelHeight);
 		}
-		
 		let pos = this.startRegion.startPos;
 		let x = this.transform.getX(this.startPos);
 		if(this.startPos == pos) {
@@ -333,20 +343,50 @@ class ZoomPanel extends DisplayPanel{
 				continue;
 
 			let regionColor = ((region.branch === 1)? Theme.currentTheme.gutColor.fill[i%2] : Theme.currentTheme.gutExtColor.fill[i%2]);
-			let regionOpacity = ((region.branch === 1)? Theme.currentTheme.gutColor.opacity : Theme.currentTheme.gutExtColor.opacity);
-			if (region.color != undefined || region.color != null) {
-				regionColor = Utility.colorBlend(region.color, '#404040', .7)
-//				regionColor = Utility.colorShade(regionColor, 0.8);
+			if (region.color != undefined && region.color != null) {
+				regionColor = region.color;
 			}
+			let regionOpacity = ((region.branch === 1)? Theme.currentTheme.gutColor.opacity : Theme.currentTheme.gutExtColor.opacity);
+			let blendColor =  '#404040';
+			let borderColor = Theme.currentTheme.gutColor.border;
+			let innerBorder = false;
+			if(region.overlaps) {
+				if (region.color == undefined || region.color == null) {
+					regionColor = Theme.currentTheme.landmarkColor.fill;
+				}
+				if(this.overlapRegionStyle==1) {				
+					regionColor = this.getOverlapPattern(regionColor);
+				}
+				if(this.overlapRegionStyle!=0 && this.overlapRegionStyle!=1) {				
+					regionColor = this.getOverlapPattern('#baa');
+				}
+	//			let regionColor = Theme.currentTheme.gradientColorS5(Theme.currentTheme.landmarkColor.fill, 0.1, .9, start, end, landmark.position);
+	//			let regionColor = Theme.currentTheme.gradientColorS5(regionColor, 0.55, .75, start, end, landmark.position);
+				blendColor =  '#888888';
+				if(this.overlapRegionStyle==0) {
+					regionColor = Utility.colorBlend(regionColor, blendColor, .7)
+				}
+				regionOpacity = Theme.currentTheme.landmarkColor.opacity;
+				borderColor = Theme.currentTheme.landmarkColor.border
+				innerBorder = true;
+			}
+			else {
+				regionColor = Utility.colorBlend(regionColor, blendColor, .7)
+	//			regionColor = Utility.colorShade(regionColor, 0.8);
+			}
+
 			let fillColor = { color: regionColor, opacity: regionOpacity };
-			let color = {border: Theme.currentTheme.gutColor.border, background: fillColor };	
-			let regionBox = this.drawGutRegion(region, color);
+			let color = {border: borderColor, background: fillColor };
+				
+				
+			let regionBox = this.drawGutRegion(region, color, innerBorder);
+
 			prevRegionBranch = prevRegionBranch || region.branch;
 			if (prevRegionBranch != region.branch ){
 				this.overlapVisible = true;
 			}
 			this.regionBoxes.push(regionBox);
-			if(this.absolutePositions) {
+			if(this.absolutePositions && (!region.overlaps || region.overlapCoverage <.8) ) {
 				pos += region.size;
 				pos = Math.min(this.endPos, pos);
 				x = this.transform.getX(pos);
@@ -368,10 +408,12 @@ class ZoomPanel extends DisplayPanel{
 				}
 			}
 		}
-		
 		let titles = []
 		for (let region of this.regionBoxes) {
 			titles.push(region.title)
+			if(region.region.overlaps) {
+				region.box.front();
+			}
 		}
 		let regionLanmarksTitles = this.drawLandmarks();
 		let regionsTitles = this.mergeTitles(titles, regionLanmarksTitles); 
@@ -458,11 +500,9 @@ class ZoomPanel extends DisplayPanel{
 				continue;
 			}
 			let pos = landmark.position;			
-			let start = Math.max(landmark.startPos, this.startPos);
-			let end = Math.min(landmark.endPos, this.endPos);
 			if (pos > this.endPos) {
 				if (landmark.startPos < this.endPos) {
-					let titleBox = this.drawLandmarkRegion(landmark, start, end);
+					let titleBox = this.drawLandmarkRegion(landmark);
 					if (titleBox) {
 						titles.push(titleBox.title)
 					}
@@ -471,7 +511,7 @@ class ZoomPanel extends DisplayPanel{
 			}
 			if (pos < this.startPos) {
 				if (landmark.endPos > this.startPos) {
-					let titleBox = this.drawLandmarkRegion(landmark, start, end);
+					let titleBox = this.drawLandmarkRegion(landmark);
 					if (titleBox) {
 						titles.push(titleBox.title)
 					}
@@ -501,7 +541,7 @@ class ZoomPanel extends DisplayPanel{
 
 			let x = this.transform.getX(pos);// + textOffset;
 
-			let titleBox = this.drawLandmarkRegion(landmark, start, end);
+			let titleBox = this.drawLandmarkRegion(landmark);
 			if (titleBox) {
 				titles.push(titleBox.title)
 			}
@@ -519,27 +559,20 @@ class ZoomPanel extends DisplayPanel{
 		return titles
 	}
 
-	drawLandmarkRegion(landmark, start, end) {
-		if (landmark.size > 0) { //Darw landmark region
-		
+	drawLandmarkRegion(landmark) {
+		if (landmark.size > 0 ) { //Darw landmark region
 			let landmarkColor = Theme.currentTheme.landmarkColor.fill;
 			if (landmark.color != undefined || landmark.color != null) {
 				landmarkColor = Utility.colorBlend(landmark.color, '#888888', .7)
 //				landmarkColor = Utility.colorBlend(landmark.color, 'fff', .5)
 			}
 			let fillColor = { color: landmarkColor, opacity: Theme.currentTheme.landmarkColor.opacity };
-
 //			let fillColor = Theme.currentTheme.gradientColorS5(Theme.currentTheme.landmarkColor.fill, 0.1, .9, start, end, landmark.position);
 //			let fillColor = Theme.currentTheme.gradientColorS5(regionColor, 0.55, .75, start, end, landmark.position);
-
 //			let color = {border: Theme.currentTheme.landmarkBorderColor, background: fillColor };			
 			let color = {border: Theme.currentTheme.landmarkColor.border, background: fillColor };	
 			return this.drawGutRegion(landmark, color, true);
 		}
-		
-		
-		
-		
 	}
 
 	drawGutRegion(region, color, innerBorder=false) {
@@ -582,13 +615,18 @@ class ZoomPanel extends DisplayPanel{
 		let title = this.ctx.text('').font(Theme.currentTheme.regionFontZoom).addClass('large-text').addClass('clickable-title')
 					.on('click', this.handleRegionNameClick.bind(this, region));
 		
-		
-		let titleText = title.tspan(region.name||region.description).dy(title.bbox().height/2);
+		let label = region.name||region.description;
+		let titleText = title.tspan(label).dy(title.bbox().height/2);
 		title.cx(this.transform.getX((startPos + endPos) / 2.0)).y(this.yRegionTxt);
 //		title.cx(this.transform.getX((startPos + endPos) / 2.0)).y(y + thickness/2 - this.fontHeight); 
-		UtilityViewer1D.addTooltip(this.ctx, titleText, region.description);
+		let toolTip = region.description || region.name;
+		if(region.overlapCoverage > 0) {
+			toolTip += ' (overlaps with other regions)';
+//			toolTip += ` (${Math.round(region.overlapCoverage*100)}% overlapped)` 
+		}  
+		UtilityViewer1D.addTooltip(this.ctx, titleText, toolTip);
 		
-		return {box: regionBox, branch: region.branch, title: title};
+		return {box: regionBox, branch: region.branch, title: title, region: region};
 	}
 
 	setGutModel(gutModel) {
