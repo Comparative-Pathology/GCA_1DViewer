@@ -314,21 +314,19 @@ class CellTypePanel extends DisplayPanel {
 		let colHeader0 = 'Region ' + ((this.sortCol == 0)? sortSymbol : '') ;
 		let colHeader1 = 'Layer ' + ((this.sortCol == 1)? sortSymbol : '') ;
 		let colHeader2 = 'Cell-Type ' + ((this.sortCol == 2)? sortSymbol : '') ;
-		let tableHead = `<thead><tr>
-							<th id="cellType_header_0" style="background:${Theme.currentTheme.annotationBkgColor}">${colHeader0}</th>
+		let f1 = Theme.currentTheme.annotationDescFont;
+		let f2 = Theme.currentTheme.annotationFont;
+		let f3 = Theme.currentTheme.annotationPosFont;
+
+		let tableHead = `<thead style="font-family:${f1.family}; font-size: ${f1.size-1}pt;" ><tr>
+							<th id="cellType_header_0" style="background:${Theme.currentTheme.annotationBkgColor}; cursor:pointer;">${colHeader0}</th>
 							<th id="cellType_header_1" style="background:${Theme.currentTheme.annotationBkgColor}">${colHeader1}</th>
 							<th id="cellType_header_2" style="background:${Theme.currentTheme.annotationBkgColor}">${colHeader2}</th></tr></thead>`;
 		let tableBody = '<tbody>';
 
-		let f1 = Theme.currentTheme.annotationDescFont;
-		let f2 = Theme.currentTheme.annotationFont;
-		let f3 = Theme.currentTheme.annotationPosFont;
-		let regionStyle = `color:${f1.fill}; font-stretch: condensed;`;
-		let layerStyle = `color:${f2.fill}; font-stretch: condensed;`;
-		let cellTypeStyle = `color:${f3.fill}; font-stretch: condensed;`;
-//		let layerStyle = `color:${f2.fill}; font-weight:${f2.weight}; font-stretch: condensed;`;
-//		let cellTypeStyle = `color:${f3.fill}; font-weight:${f3.weight}; font-stretch: condensed;`;
-
+		let regionStyle = `color:${f1.fill}; font-family:${f1.family}; font-size: ${f1.size-1}pt; font-stretch: condensed;`; 
+		let layerStyle = `color:${f2.fill}; font-family:${f2.family}; font-size: ${f2.size-1}pt; font-stretch: condensed;`;
+		let cellTypeStyle = `color:${f3.fill}; font-family: ${f3.family}; font-size: ${f3.size-1}pt; `;
 
 		let cellTypeIds = new Array();
 				
@@ -351,7 +349,7 @@ class CellTypePanel extends DisplayPanel {
 			tableBody += `<td style="${regionStyle}" title="${cellType.region}" >${region}</td>`;
 			tableBody += `<td style="${layerStyle}" title="${cellType.layer}" >&nbsp;${layer}</td>`;
 			let id = cellType.externalId.replace(':', '_')
-			let link = `<button id="cellType_${id}_${i}" class="CellTypeLink medium-text" 
+			let link = `<button id="cellType_${id}_${i}" class="CellTypeLink medium-text clickable-title" 
 			                                             style="${cellTypeStyle}" 
 			                                             title="${cellType.name}&#013;${id}&#013;click for OLS page">${cellTypeName}</button>`
 			cellTypeIds.push({id:id, index:i});
@@ -359,7 +357,7 @@ class CellTypePanel extends DisplayPanel {
 			tableBody += '</tr>';
 		}
 		tableBody += '</tbody>';
-		let displayTable = Utility.htmlToElem(`<div class="tableFixHead" style="white-space: nowrap;"><table class="medium-text">${tableHead}${tableBody}</table></div>`);
+		let displayTable = Utility.htmlToElem(`<div class="tableFixHead" style="white-space: nowrap;"><table>${tableHead}${tableBody}</table></div>`);
 		displayTable.style.color = f2.fill;
 
 		let wrapper = Utility.addElement(this.container, 'div');

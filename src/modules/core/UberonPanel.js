@@ -73,18 +73,18 @@ class UberonPanel extends DisplayPanel {
 	}
 
 	drawPanel() {
-		let tableHead = `<thead><tr>
+		let f1 = Theme.currentTheme.annotationPosFont;
+		let f2 = Theme.currentTheme.annotationFont;
+		let tableHead = `<thead style="font-family:${f1.family}; font-size: ${f1.size-1}pt;"><tr>
 							<th style="background:${Theme.currentTheme.annotationBkgColor}">Uberon Id</th>
 							<th style="background:${Theme.currentTheme.annotationBkgColor}">Description</th></tr></thead>`;
 		let tableBody = '<tbody>';
-		let f1 = Theme.currentTheme.annotationPosFont;
-		let f2 = Theme.currentTheme.annotationFont;
-		let idStyle = `color:${f1.fill};`;
-		let descStyle = `color:${f2.fill}; font-weight:${f2.weight}`;
+		let idStyle = `color:${f1.fill}; font-family:${f1.family}; font-size: ${f1.size-1}pt;`;
+		let descStyle = `color:${f2.fill}; font-family:${f1.family}; font-size: ${f1.size-1}pt;`;
 		for(let annotation of this.uberonTable) {
 			let uberonId = annotation.description.replace(':', '_'); 
 //			let link = `<a href="#" onclick= "openUberonLink(\'` + uberonId + `\')" >${uberonId}</a>`;
-			let link = `<a style="${idStyle}" href="${UberonUrl + uberonId}" target="_blank">${annotation.description}</a>`;
+			let link = `<a style="${idStyle}" href="${UberonUrl + uberonId}" class="clickable-title" target="_blank">${annotation.description}</a>`;
 //			let link = `<a href="${UberonUrl + uberonId}" target="_popup" onclick="window.open('${UberonUrl + uberonId}', '_blank')">${annotation.description}</a>`;
 //			let link = `<a href="#" >${uberonId}</a>`;
 			tableBody += '<tr>';
