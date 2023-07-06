@@ -256,7 +256,9 @@ class ZoomPanel extends DisplayPanel{
 				let chkBox = document.createElement('div');
 				chkBox.innerHTML = `<input type="checkbox" id="select-zoom-layer-${i}"
 									       name="select-zoom-layer" ${selected?"checked":""}
-									       style="width:${chkBoxSize-4}px; height:${chkBoxSize-4}px" >`
+									       style="width:90%; height:90%; margin:0" >`
+//									       style="width:1em; height:1em; margin:0" >`
+//									       style="width:${chkBoxSize-4}px; height:${chkBoxSize-4}px" >`
 				let tt = title.foreignObject(chkBoxSize, chkBoxSize)
 				tt.add(chkBox);
 				title.text(GutAnatomy.visibleIntstinalLayers[i]).font(Theme.currentTheme.posFont).addClass('medium-text').x(chkBoxSize+3); 
