@@ -4,7 +4,7 @@
   "description": "The Edinburgh Gut Cell Atlas 1D viewer is a web-based application to view and browse an abstract model of human gut.",
   "main": "dist/index_bundle.js",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --mode production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
