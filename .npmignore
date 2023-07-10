@@ -1,3 +1,4 @@
-/src/
-/external/
+src/
+external/
+models/
 webpack.config.js
