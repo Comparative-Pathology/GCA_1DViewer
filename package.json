@@ -2,16 +2,17 @@
   "name": "GCA_1DViewer",
   "version": "1.0.0",
   "description": "The Edinburgh Gut Cell Atlas 1D viewer is a web-based application to view and browse an abstract model of human gut.",
+  "author": "Mehran Sharghi",
+  "keywords": [],
+  "repository": "https://github.com/Comparative-Pathology/GCA_1DViewer/tree/master",
+  "license": "ISC",
   "main": "dist/index_bundle.js",
   "scripts": {
 	"prepare": "npm run build",
     "build": "webpack --mode production",
     "test": "echo \"No test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "files": ["dist/*"],
+  "files": ["dist/help", "dist/GCA_Utils.js", "dist/GCA_Viewer1D.js"],
   "dependencies": {
     "url-loader": "^4.1.1"
   },
