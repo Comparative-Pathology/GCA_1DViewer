@@ -146,9 +146,17 @@ class DemoViewer extends EventTarget {
 }
 ```
 
-## How to build 
+## How to install or build  
 
-To build the distribution:
+To install from GitHub
+
+```
+npm install git+https://github.com/Comparative-Pathology/GCA_1DViewer.git
+```
+
+To build the distribution from source:
+
+Download the [source](https://github.com/Comparative-Pathology/GCA_1DViewer.git) from GitHub   
 
 ```
 npm run build
@@ -163,12 +171,7 @@ npm install
 
 ## Acknowledgements and References
 
-GCARenderer was developed for use by the
-<a
-href="https://www.ed.ac.uk/comparative-pathology/the-gut-cell-atlas-project">
-Gut Cell Atlas Project</a>
-funded by the
-<a
-href="https://helmsleytrust.org/">
-Helmsley Charitable Trust</a>.
+GCARenderer was developed for use by the [Gut Cell Atlas Project](https://www.ed.ac.uk/comparative-pathology/the-gut-cell-atlas-project)
+
+Funded by the [Helmsley Charitable Trust](https://helmsleytrust.org/)
 
