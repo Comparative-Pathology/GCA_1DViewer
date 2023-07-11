@@ -11,6 +11,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "files": ["dist/*"],
   "dependencies": {
     "url-loader": "^4.1.1"
   },
